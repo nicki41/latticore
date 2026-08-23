@@ -6,8 +6,8 @@
 
 <p align="center">
   <a href="https://github.com/nicki41/minecontroller/actions/workflows/ci.yml"><img src="https://github.com/nicki41/minecontroller/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://www.codefactor.io/repository/github/nicki41/minecontroller/overview/master"><img src="https://www.codefactor.io/repository/github/nicki41/minecontroller/badge/master" alt="CodeFactor" /></a>
-  <a href="https://github.com/nicki41/minecontroller/actions/workflows/docker-publish.yml"><img src="https://github.com/nicki41/minecontroller/actions/workflows/docker-publish.yml/badge.svg" alt="Publish Docker images"></a>
+  <a href="https://github.com/nicki41/minecontroller/actions/workflows/docker-publish.yml"><img src="https://github.com/nicki41/minecontroller/actions/workflows/docker-publish.yml/badge.svg" alt="Publish Docker images"></
+  <a href="https://www.codefactor.io/repository/github/nicki41/minecontroller/overview/master"><img src="https://www.codefactor.io/repository/github/nicki41/minecontroller/badge/master" alt="CodeFactor" /></a>                                                                                                                                                                                                                           a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License: GPL-3.0"></a>
 </p>
 
