@@ -1,0 +1,32 @@
+# Automated dependency/security update PRs. Grouped so a normal week is one
+# PR per ecosystem instead of dozens; security advisories still open their
+# own PR immediately.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories: ["/", "/runtime-images/java8", "/runtime-images/java17", "/runtime-images/java21", "/runtime-images/java25"]
+    schedule:
+      interval: weekly
+    # The major IS the point of each image (java8 must stay Java 8, Node
+    # stays on its LTS line) — base-image patches arrive via the weekly
+    # rebuild in docker-publish.yml instead.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

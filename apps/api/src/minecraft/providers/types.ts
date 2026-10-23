@@ -9,6 +9,10 @@ export interface VersionEntry {
   stable: boolean;
   /** Extra env vars (beyond TYPE/VERSION, which the runtime sets generically) the itzg image needs for this exact version. */
   env: Record<string, string>;
+  /** Loader/build version this Minecraft version resolves to (Forge/NeoForge) — what gets recorded as Server.buildVersion. */
+  loaderVersion?: string;
+  /** Exact Maven artifact version of the installer, when it differs from a plain "<mc>-<loader>" (Forge). */
+  artifactVersion?: string;
 }
 
 export type VersionMap = Map<string, VersionEntry>;
@@ -34,12 +38,20 @@ export interface InstallPlanInstallerJar extends InstallPlanBase {
   kind: "installer-jar";
   installerUrl: string;
   installerFilename: string;
-  installerSha256?: string;
+  /** Required, not optional like the direct-download hashes: both Forge and NeoForge publish one for every installer, and the installer is code the panel executes. */
+  installerSha256: string;
   /** Args passed to `java -jar <installerFilename> ...` inside the ephemeral installer container, bind-mounted to /data. */
   installerArgs: string[];
 }
 
 export type InstallPlan = InstallPlanDirectDownload | InstallPlanInstallerJar;
+
+/** How the installed server is started — recorded in Server.installManifest so every restart regenerates the same launch command. */
+export type LaunchTarget =
+  /** `java -jar <path> nogui` — Vanilla/Paper/Fabric, and Forge up to 1.16.5. */
+  | { kind: "jar"; path: string }
+  /** `java @<path> nogui` — Forge 1.17+ and NeoForge, whose installer writes an argsfile with the module path and main class. */
+  | { kind: "argsfile"; path: string };
 
 /**
  * One implementation per server software family. Responsible only for

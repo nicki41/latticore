@@ -14,17 +14,8 @@ export async function allocationsRoutes(fastify: FastifyInstance) {
     const { port } = createAllocationSchema.parse(request.body);
     const server = request.mcServer!;
 
-    if (port === server.port) {
-      throw new ConflictError(`Port ${port} is already this server's primary port.`);
-    }
-    const usedByAnotherServer = await fastify.prisma.server.findUnique({ where: { port } });
-    if (usedByAnotherServer) {
-      throw new ConflictError(`Port ${port} is already used by another server.`);
-    }
-    const usedByAllocation = await fastify.prisma.serverAllocation.findUnique({ where: { port } });
-    if (usedByAllocation) {
-      throw new ConflictError(`Port ${port} is already allocated.`);
-    }
+    const conflict = await fastify.serverManager.findPortConflict(port, { serverId: server.id });
+    if (conflict) throw new ConflictError(conflict);
 
     const allocation = await fastify.prisma.serverAllocation.create({ data: { serverId: server.id, port } });
 

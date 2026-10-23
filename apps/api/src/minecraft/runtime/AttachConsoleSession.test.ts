@@ -13,7 +13,7 @@ function makeFakeContainer(backlogText = "") {
     attach: vi.fn(async () => stream),
     // Test-only escape hatch — production code never reaches into this.
     __stream: stream,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } as any;
 }
 

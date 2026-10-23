@@ -21,7 +21,7 @@ import {
 import { RconClient } from "./runtime/RconClient.js";
 import { deriveRconPassword } from "./runtime/rconSecret.js";
 import { AttachConsoleSession } from "./runtime/AttachConsoleSession.js";
-import { ServerInstaller } from "./install/ServerInstaller.js";
+import { ServerInstaller, type InstallerRuntime } from "./install/ServerInstaller.js";
 import { ServerConfigService } from "../modules/serverConfig/serverConfig.service.js";
 import type Docker from "dockerode";
 import type { Readable as NodeReadable } from "node:stream";
@@ -29,8 +29,17 @@ import type { Readable as NodeReadable } from "node:stream";
 /** Minecraft's own boot-complete line — printed by the same underlying vanilla DedicatedServer sequence Paper/Fabric/Forge/NeoForge all wrap, so one regex covers all five software types. Always English regardless of locale/motd, since the server console isn't localized. */
 const READY_LINE = /Done \([\d.,]+s\)! For help, type "help"/;
 
+/**
+ * Statuses owned by an in-flight lifecycle operation. reconcile() never
+ * touches these (it would race the operation itself), which is exactly why
+ * every operation below settles its own status on failure, and why
+ * recoverInterruptedOperations() exists for the one case no operation can
+ * clean up after itself: the panel process restarting mid-operation.
+ */
+const TRANSITIONAL_STATUSES: readonly ServerStatus[] = ["CREATING", "INSTALLING", "STARTING", "STOPPING", "DELETING"];
+
 /** The subset of DockerMinecraftRuntime that MinecraftServerManager depends on — extracted so tests can inject a fake without touching a real Docker daemon. */
-export interface MinecraftRuntime {
+export interface MinecraftRuntime extends InstallerRuntime {
   createContainer(options: CreateContainerOptions): Promise<string>;
   start(containerId: string): Promise<void>;
   stop(containerId: string, timeoutSeconds?: number): Promise<void>;
@@ -39,6 +48,8 @@ export interface MinecraftRuntime {
   inspect(containerId: string): Promise<Docker.ContainerInspectInfo | null>;
   getStats(containerId: string): Promise<ContainerStats | null>;
   getLogStream(containerId: string, options?: { tail?: number; since?: number }): Promise<NodeReadable>;
+  /** One-shot (non-following) log read — `since` is a Unix timestamp in seconds. */
+  readLogs(containerId: string, options?: { tail?: number; since?: number }): Promise<string>;
   getContainer(containerId: string): Docker.Container;
 }
 
@@ -53,6 +64,11 @@ export interface CreateServerInput {
   port?: number;
   /** Must be true — enforced by createServerSchema (z.literal(true)) before this ever reaches here; re-checked defensively below. */
   eulaAccepted: boolean;
+}
+
+export interface ReinstallServerInput {
+  /** Switch to a different Minecraft version of the same software — omitted means "same version, latest build" (e.g. a newer Paper build or Forge loader). */
+  mcVersion?: string;
 }
 
 export interface UpdateServerSettingsInput {
@@ -95,7 +111,7 @@ export interface MinecraftServerManager {
 export class MinecraftServerManager extends EventEmitter {
   private readonly runtime: MinecraftRuntime;
   private readonly configService = new ServerConfigService();
-  private readonly installer = new ServerInstaller();
+  private readonly installer: ServerInstaller;
   /** One AttachConsoleSession per PANEL_MANAGED server currently known about — see getOrCreateAttachSession(). */
   private readonly attachSessions = new Map<string, AttachConsoleSession>();
   private reconcileTimer: ReturnType<typeof setInterval> | null = null;
@@ -106,6 +122,7 @@ export class MinecraftServerManager extends EventEmitter {
   ) {
     super();
     this.runtime = runtime;
+    this.installer = new ServerInstaller(runtime);
   }
 
   startReconciler(intervalMs = 5000): void {
@@ -140,7 +157,11 @@ export class MinecraftServerManager extends EventEmitter {
     }
 
     const port = input.port ?? (await this.allocateFreePort());
-    await this.assertPortAvailable(port);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new BadRequestError("Port must be an integer between 1 and 65535.");
+    }
+    const conflict = await this.findPortConflict(port);
+    if (conflict) throw new ConflictError(conflict);
 
     const server = await this.prisma.server.create({
       data: {
@@ -164,27 +185,50 @@ export class MinecraftServerManager extends EventEmitter {
     await this.prisma.server.update({ where: { id: server.id }, data: { dataDir } });
     await fs.mkdir(this.absoluteDataPath(dataDir), { recursive: true });
 
-    this.provisionInBackground(server.id, provider).catch((err) => {
-      logger.error({ err, serverId: server.id }, "Server provisioning failed");
-      this.updateStatus(server.id, "ERROR", { statusDetail: "Provisioning failed unexpectedly. Check server logs." }).catch(() => {});
-    });
+    this.provisionInBackground(server.id, provider).catch((err) => this.handleProvisioningFailure(server.id, err));
 
     return { ...server, dataDir };
   }
 
+  /**
+   * Recreates the container from the current DB row before starting it (see
+   * restartServer() for why), so Start after a Settings change applies the
+   * new RAM/CPU limits and port allocations instead of booting the stale
+   * container. Idempotent: starting a server that's already running or
+   * already booting is a no-op, not an error — a scheduled "Start" step on
+   * an already-running server must not wedge it in STARTING.
+   */
   async startServer(serverId: string): Promise<void> {
     const server = await this.requireServer(serverId);
     if (!server.containerId) throw new ConflictError("Server has no container yet.");
+    if (server.status === "RUNNING" || server.status === "STARTING") return;
+    this.assertNotBusy(server, "start");
+
     await this.updateStatus(serverId, "STARTING");
-    await this.runtime.start(server.containerId);
-    this.waitUntilReady(server, server.containerId).catch((err) => logger.error({ err, serverId }, "Post-start reconcile failed"));
+    let containerId: string;
+    try {
+      containerId = await this.recreateContainer(server);
+      await this.runtime.start(containerId);
+    } catch (err) {
+      await this.settleAfterFailure(serverId, "Failed to start the server", err);
+      throw err;
+    }
+    this.watchBoot(serverId, server.runtime, containerId);
   }
 
   async stopServer(serverId: string): Promise<void> {
     const server = await this.requireServer(serverId);
     if (!server.containerId) throw new ConflictError("Server has no container yet.");
+    if (server.status === "STOPPED") return;
+    this.assertNotBusy(server, "stop", ["STARTING"]);
+
     await this.updateStatus(serverId, "STOPPING");
-    await this.runtime.stop(server.containerId);
+    try {
+      await this.runtime.stop(server.containerId);
+    } catch (err) {
+      await this.settleAfterFailure(serverId, "Failed to stop the server", err);
+      throw err;
+    }
     await this.updateStatus(serverId, "STOPPED");
   }
 
@@ -202,14 +246,116 @@ export class MinecraftServerManager extends EventEmitter {
   async restartServer(serverId: string): Promise<void> {
     const server = await this.requireServer(serverId);
     if (!server.containerId) throw new ConflictError("Server has no container yet.");
+    this.assertNotBusy(server, "restart", ["STARTING"]);
+
     await this.updateStatus(serverId, "STOPPING");
-    await this.recreateContainer(server);
-    const updated = await this.requireServer(serverId);
-    await this.runtime.start(updated.containerId!);
-    this.waitUntilReady(updated, updated.containerId!).catch((err) => logger.error({ err, serverId }, "Post-restart reconcile failed"));
+    let containerId: string;
+    try {
+      containerId = await this.recreateContainer(server);
+      await this.updateStatus(serverId, "STARTING");
+      await this.runtime.start(containerId);
+    } catch (err) {
+      await this.settleAfterFailure(serverId, "Failed to restart the server", err);
+      throw err;
+    }
+    this.watchBoot(serverId, server.runtime, containerId);
   }
 
-  private async recreateContainer(server: Server): Promise<void> {
+  /**
+   * Re-runs the install pipeline in place — same software, either the same
+   * Minecraft version (picking up the newest build/loader, e.g. after an
+   * "update available" notification) or a different one. World data,
+   * configs, and plugins/mods in the data directory are left untouched; only
+   * the server jar/libraries and launch script are replaced. Also the
+   * recovery path for an install that failed or was interrupted.
+   */
+  async reinstallServer(serverId: string, input: ReinstallServerInput = {}): Promise<void> {
+    const server = await this.requireServer(serverId);
+    if (server.runtime !== "PANEL_MANAGED") {
+      throw new ConflictError("Legacy servers can't be reinstalled — create a new server instead.");
+    }
+    if (server.status !== "STOPPED" && server.status !== "ERROR") {
+      throw new ConflictError("Stop the server before reinstalling it.");
+    }
+
+    const provider = getProvider(server.software as ServerSoftware);
+    const mcVersion = input.mcVersion ?? server.mcVersion;
+    if (mcVersion !== server.mcVersion) {
+      const versions = await provider.listVersions();
+      if (!versions.some((v) => v.id === mcVersion)) {
+        throw new BadRequestError(`Unknown ${server.software} version: ${mcVersion}`);
+      }
+    }
+
+    this.closeAttachSession(serverId);
+    if (server.containerId) await this.runtime.remove(server.containerId, true);
+    await this.prisma.server.update({ where: { id: serverId }, data: { containerId: null, mcVersion } });
+    await this.updateStatus(serverId, "INSTALLING");
+
+    this.provisionInBackground(serverId, provider).catch((err) => this.handleProvisioningFailure(serverId, err));
+  }
+
+  /**
+   * Called once at boot: an operation that was in flight when the panel
+   * process last stopped (update, crash, host reboot) left its server in a
+   * transitional status that reconcile() deliberately never touches. Settle
+   * each one against what Docker reports now — or, for a server that was
+   * still booting, resume watching for its ready line.
+   */
+  async recoverInterruptedOperations(): Promise<void> {
+    const stuck = await this.prisma.server.findMany({ where: { status: { in: [...TRANSITIONAL_STATUSES] } } });
+
+    for (const server of stuck) {
+      try {
+        const info = server.containerId ? await this.runtime.inspect(server.containerId) : null;
+
+        if (info?.State.Running) {
+          if (server.status === "STARTING" && !(await this.hasBootedSince(server, info))) {
+            this.watchBoot(server.id, server.runtime, server.containerId!);
+          } else {
+            await this.updateStatus(server.id, "RUNNING");
+          }
+        } else if (info && server.status !== "CREATING" && server.status !== "INSTALLING") {
+          await this.updateStatus(server.id, "STOPPED");
+        } else {
+          const detail =
+            server.status === "DELETING"
+              ? "Deletion was interrupted by a panel restart — delete the server again."
+              : "Installation was interrupted by a panel restart — use Reinstall to try again.";
+          await this.updateStatus(server.id, "ERROR", { statusDetail: detail });
+        }
+        logger.info({ serverId: server.id, previousStatus: server.status }, "Recovered server from an interrupted operation");
+      } catch (err) {
+        logger.error({ err, serverId: server.id }, "Failed to recover server from an interrupted operation");
+      }
+    }
+  }
+
+  /**
+   * Null if `port` is free instance-wide, otherwise a human-readable reason.
+   * Docker can bind each host port only once, no matter whether it's some
+   * server's primary game port or an extra allocation — so both tables are
+   * checked, always. Deliberately never names the other server: the caller
+   * may not have access to it.
+   */
+  async findPortConflict(port: number, options: { serverId?: string } = {}): Promise<string | null> {
+    const primary = await this.prisma.server.findUnique({ where: { port }, select: { id: true } });
+    if (primary) {
+      return primary.id === options.serverId
+        ? `Port ${port} is already this server's primary port.`
+        : `Port ${port} is already used by another server.`;
+    }
+    const allocation = await this.prisma.serverAllocation.findUnique({ where: { port }, select: { serverId: true } });
+    if (allocation) {
+      return allocation.serverId === options.serverId
+        ? `Port ${port} is already allocated to this server.`
+        : `Port ${port} is already allocated to another server.`;
+    }
+    return null;
+  }
+
+  /** Returns the new container's id (also persisted on the row). */
+  private async recreateContainer(server: Server): Promise<string> {
     this.closeAttachSession(server.id); // bound to the old container — a fresh one gets created against the new containerId on next use
 
     // Graceful stop before the force-remove below — force-removing a
@@ -246,7 +392,7 @@ export class MinecraftServerManager extends EventEmitter {
         javaImageTag: server.javaImageTag,
       });
       await this.prisma.server.update({ where: { id: server.id }, data: { containerId } });
-      return;
+      return containerId;
     }
 
     const provider = getProvider(server.software as ServerSoftware);
@@ -268,6 +414,7 @@ export class MinecraftServerManager extends EventEmitter {
       eulaAccepted: server.eulaAccepted,
     });
     await this.prisma.server.update({ where: { id: server.id }, data: { containerId } });
+    return containerId;
   }
 
   async deleteServer(serverId: string, options: { keepFiles?: boolean } = {}): Promise<void> {
@@ -276,7 +423,12 @@ export class MinecraftServerManager extends EventEmitter {
     this.closeAttachSession(serverId);
 
     if (server.containerId) {
-      await this.runtime.remove(server.containerId, true);
+      try {
+        await this.runtime.remove(server.containerId, true);
+      } catch (err) {
+        await this.settleAfterFailure(serverId, "Failed to delete the server's container", err);
+        throw err;
+      }
     }
     if (!options.keepFiles) {
       await fs.rm(this.absoluteDataPath(server.dataDir), { recursive: true, force: true }).catch((err) => {
@@ -338,7 +490,7 @@ export class MinecraftServerManager extends EventEmitter {
    * doesn't spam the live feed. Defaults to false — visible — matching a
    * user-typed command's existing echo+response behavior.
    */
-  async sendCommand(serverId: string, command: string, options: { silent?: boolean } = {}): Promise<string> {
+  async sendCommand(serverId: string, command: string, options: { silent?: boolean; timeoutMs?: number; waitFor?: RegExp } = {}): Promise<string> {
     const server = await this.requireServer(serverId);
     if (server.status !== "RUNNING") throw new ConflictError("Server is not running.");
 
@@ -346,7 +498,7 @@ export class MinecraftServerManager extends EventEmitter {
       if (!server.containerId) throw new ConflictError("Server has no container yet.");
       const session = this.getOrCreateAttachSession(server.id, server.containerId);
       await session.open();
-      return session.sendCommand(command, { silent: options.silent });
+      return session.sendCommand(command, { silent: options.silent, timeoutMs: options.timeoutMs, waitFor: options.waitFor });
     }
 
     const rcon = this.createRconClient(server);
@@ -379,7 +531,7 @@ export class MinecraftServerManager extends EventEmitter {
   /** Periodic safety net: reconciles DB status against real Docker state (crashes, OOM kills, manual `docker stop`, etc.). */
   async reconcile(): Promise<void> {
     const servers = await this.prisma.server.findMany({
-      where: { containerId: { not: null }, status: { notIn: ["CREATING", "DELETING", "INSTALLING", "STARTING", "STOPPING"] } },
+      where: { containerId: { not: null }, status: { notIn: [...TRANSITIONAL_STATUSES] } },
     });
 
     for (const server of servers) {
@@ -405,15 +557,17 @@ export class MinecraftServerManager extends EventEmitter {
     // container ever boots, and — since createContainer() no longer passes
     // any of the corresponding env vars — never touched by the image
     // itself afterward. See the note in DockerMinecraftRuntime.createContainer().
+    // (mkdir first: a reinstall may run against a data dir someone emptied by hand.)
+    await fs.mkdir(this.absoluteDataPath(server.dataDir), { recursive: true });
     await this.configService.createWithDefaults(server, "server-properties");
 
     const extraPorts = (await this.prisma.serverAllocation.findMany({ where: { serverId: server.id } })).map((a) => a.port);
 
     if (server.runtime === "PANEL_MANAGED") {
-      // INSTALLING covers the actual download/verify (or, once Fabric/Forge/
-      // NeoForge land, the ephemeral installer container) — set BEFORE that
-      // work starts, since it's now real, panel-observed work instead of a
-      // label slapped on "container exists, itzg is doing who-knows-what."
+      // INSTALLING covers the actual download/verify (or, for Forge/NeoForge,
+      // the ephemeral installer container) — set BEFORE that work starts,
+      // since it's real, panel-observed work instead of a label slapped on
+      // "container exists, itzg is doing who-knows-what."
       await this.updateStatus(serverId, "INSTALLING");
       const plan = await provider.resolveInstallPlan(server.mcVersion);
       const result = await this.installer.install(server, plan);
@@ -468,6 +622,49 @@ export class MinecraftServerManager extends EventEmitter {
     return server.runtime === "PANEL_MANAGED"
       ? this.waitForReadyLine(server.id, containerId, timeoutMs)
       : this.waitUntilRunningOrFailed(server.id, containerId, timeoutMs);
+  }
+
+  /** Fire-and-forget waitUntilReady() for a container that's already been started. */
+  private watchBoot(serverId: string, runtime: string, containerId: string): void {
+    this.waitUntilReady({ id: serverId, runtime }, containerId).catch((err) => logger.error({ err, serverId }, "Post-start reconcile failed"));
+  }
+
+  /** Whether a running PANEL_MANAGED container already printed its ready line since it last started — LEGACY has no ready line, so "running" is all it ever gets. */
+  private async hasBootedSince(server: Pick<Server, "runtime" | "containerId">, info: Docker.ContainerInspectInfo): Promise<boolean> {
+    if (server.runtime !== "PANEL_MANAGED") return true;
+    const startedAtSeconds = Math.floor(Date.parse(info.State.StartedAt) / 1000);
+    const logs = await this.runtime.readLogs(server.containerId!, Number.isFinite(startedAtSeconds) ? { since: startedAtSeconds } : {});
+    return READY_LINE.test(stripAnsi(logs));
+  }
+
+  /** Rejects an operation while another one owns the server's status — `allowed` lists transitional statuses this particular operation may interrupt (e.g. stopping a server that's still booting). */
+  private assertNotBusy(server: Pick<Server, "status">, action: string, allowed: readonly ServerStatus[] = []): void {
+    const status = server.status as ServerStatus;
+    if (TRANSITIONAL_STATUSES.includes(status) && !allowed.includes(status)) {
+      throw new ConflictError(`Can't ${action} the server while it's ${status.toLowerCase()}.`);
+    }
+  }
+
+  /** After a lifecycle operation failed midway, puts the status back in line with what Docker actually reports instead of leaving it parked in a transitional status reconcile() would never revisit. */
+  private async settleAfterFailure(serverId: string, what: string, err: unknown): Promise<void> {
+    logger.error({ err, serverId }, what);
+    try {
+      const server = await this.prisma.server.findUnique({ where: { id: serverId } });
+      if (!server) return;
+      const info = server.containerId ? await this.runtime.inspect(server.containerId).catch(() => null) : null;
+      if (info?.State.Running) {
+        await this.updateStatus(serverId, "RUNNING");
+      } else {
+        await this.updateStatus(serverId, "ERROR", { statusDetail: `${what}: ${describeError(err)}` });
+      }
+    } catch (settleErr) {
+      logger.error({ err: settleErr, serverId }, "Failed to settle server status after a failed operation");
+    }
+  }
+
+  private handleProvisioningFailure(serverId: string, err: unknown): void {
+    logger.error({ err, serverId }, "Server provisioning failed");
+    this.updateStatus(serverId, "ERROR", { statusDetail: `Installation failed: ${describeError(err)}` }).catch(() => {});
   }
 
   private async waitForReadyLine(serverId: string, containerId: string, timeoutMs: number): Promise<void> {
@@ -571,22 +768,17 @@ export class MinecraftServerManager extends EventEmitter {
     this.emit("status", serverId, status);
   }
 
+  /** Lowest port in MC_PORT_RANGE_MIN..MAX that's neither a primary port nor an extra allocation anywhere — see findPortConflict(). */
   private async allocateFreePort(): Promise<number> {
-    const used = new Set((await this.prisma.server.findMany({ select: { port: true } })).map((s) => s.port));
+    const [servers, allocations] = await Promise.all([
+      this.prisma.server.findMany({ select: { port: true } }),
+      this.prisma.serverAllocation.findMany({ select: { port: true } }),
+    ]);
+    const used = new Set([...servers, ...allocations].map((row) => row.port));
     for (let port = env.MC_PORT_RANGE_MIN; port <= env.MC_PORT_RANGE_MAX; port++) {
       if (!used.has(port)) return port;
     }
     throw new ConflictError("No free ports left in the configured MC_PORT_RANGE_MIN..MC_PORT_RANGE_MAX range.");
-  }
-
-  private async assertPortAvailable(port: number, excludeServerId?: string): Promise<void> {
-    if (!Number.isInteger(port) || port < 1 || port > 65535) {
-      throw new BadRequestError("Port must be an integer between 1 and 65535.");
-    }
-    const existing = await this.prisma.server.findUnique({ where: { port } });
-    if (existing && existing.id !== excludeServerId) {
-      throw new ConflictError(`Port ${port} is already used by another server.`);
-    }
   }
 
   private async requireServer(serverId: string): Promise<Server> {
@@ -598,6 +790,13 @@ export class MinecraftServerManager extends EventEmitter {
   private absoluteDataPath(relativeDataDir: string): string {
     return path.join(env.DATA_PATH, relativeDataDir);
   }
+}
+
+/** A short, user-presentable reason for statusDetail — Docker/installer errors carry useful text (e.g. "port is already allocated"), but keep it to one line of reasonable length. */
+function describeError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const oneLine = message.replace(/\s+/g, " ").trim();
+  return oneLine.length > 300 ? `${oneLine.slice(0, 297)}...` : oneLine || "unknown error";
 }
 
 function mapDockerStateToStatus(

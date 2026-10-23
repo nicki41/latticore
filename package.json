@@ -19,20 +19,26 @@
     "test:shared": "npm run test -w packages/shared",
     "test:api": "npm run test -w apps/api",
     "test:web": "npm run test -w apps/web",
-    "lint": "npm run lint -w apps/api && npm run lint -w apps/web",
+    "lint": "npm run lint -w packages/shared && npm run lint -w apps/api && npm run lint -w apps/web",
     "typecheck": "npm run build -w packages/shared && npm run typecheck -w apps/api && npm run typecheck -w apps/web",
     "prisma:generate": "npm run prisma:generate -w apps/api",
     "prisma:migrate": "npm run prisma:migrate -w apps/api",
     "prisma:studio": "npm run prisma:studio -w apps/api"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^9.1.2",
-    "typescript": "^5.6.3"
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.72.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "overrides": {
-    "dompurify": "^3.4.13"
+    "dompurify": "^3.4.17",
+    "uuid": "^11.1.1"
   }
 }

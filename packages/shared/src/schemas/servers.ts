@@ -36,6 +36,12 @@ export const updateServerSettingsSchema = z.object({
 });
 export type UpdateServerSettingsInput = z.infer<typeof updateServerSettingsSchema>;
 
+export const reinstallServerSchema = z.object({
+  /** Omitted = keep the current Minecraft version and just pick up its newest build/loader. */
+  mcVersion: z.string().trim().min(1).optional(),
+});
+export type ReinstallServerInput = z.infer<typeof reinstallServerSchema>;
+
 export const executeCommandSchema = z.object({
   command: z.string().trim().min(1, "Command is required").max(1000),
 });

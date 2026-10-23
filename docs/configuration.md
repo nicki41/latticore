@@ -7,7 +7,9 @@ All variables are documented inline in [`.env.example`](../.env.example) — cop
 | Variable | Meaning |
 |---|---|
 | `SESSION_SECRET` | Long random value used to sign sessions, CSRF tokens, and legacy-path servers' derived RCON password (see [architecture.md](architecture.md#console-attached-stdin-not-rcon)). Generate with `openssl rand -hex 32`. **Treat this like a root password** — anyone who has it can forge any session. |
-| `WEB_ORIGIN` | The panel's publicly reachable URL (used for cookie and CORS settings). Set this to the real `https://` domain in production. |
+| `WEB_ORIGIN` | The panel's publicly reachable URL, exactly as it appears in the browser (used for CORS, the console WebSocket's `Origin` check, and links in notifications). Set this to the real `https://` domain in production. Reachable under several addresses (LAN IP *and* a domain)? List them comma-separated — the first is used for links. |
+| `TZ` | IANA time zone, e.g. `Europe/Berlin`. Scheduler cron expressions are evaluated in it (DST-aware), and it's passed to every Minecraft container so console timestamps match. Defaults to `UTC` in Docker. |
+| `TRUST_PROXY` | Which upstream proxies may set `X-Forwarded-For` — the client IP used for login rate limiting and the audit log. Default `loopback,linklocal,uniquelocal` (private-network proxies only), so a client connecting directly can't spoof its IP. `true` trusts everyone (only safe if the panel is unreachable except via your proxy), `false` no one, or give a comma-separated IP/CIDR list. |
 | `COOKIE_SECURE` | Leave `true` once a reverse proxy terminates TLS in front of the panel. Only set `false` for plain local `http://` use without TLS. |
 | `HOST_DATA_PATH` | Normally left unset — auto-detected. See [below](#host_data_path-the-sibling-container-problem). |
 | `MC_PORT_RANGE_MIN` / `MC_PORT_RANGE_MAX` | Port range the panel picks a free port from when creating new servers. |

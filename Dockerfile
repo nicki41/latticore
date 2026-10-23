@@ -5,7 +5,7 @@
 # simpler and more robust than maintaining a separate prod-only install,
 # and prisma's CLI needs to be present at runtime to run migrations anyway)
 ########################################
-FROM node:20-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json* ./
@@ -30,11 +30,11 @@ RUN npm run build -w apps/web
 ########################################
 # Runtime image
 ########################################
-FROM node:20-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production
 ENV HOME=/app
 WORKDIR /app
-# node:20-bookworm-slim already ships a "node" user/group at a fixed
+# node:24-bookworm-slim already ships a "node" user/group at a fixed
 # 1000:1000 — reused as-is instead of creating a new one (groupadd -g 1000
 # fails outright because that gid is already taken). Conveniently, 1000 is
 # also the first regular-user uid on most Linux hosts, so the host ./data
@@ -44,7 +44,7 @@ WORKDIR /app
 # the host's Docker-socket group, whose gid isn't known until runtime — see
 # entrypoint.sh) and then drop to "node" for everything it actually runs,
 # so the app process itself never runs as root.
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates tini gosu && rm -rf /var/lib/apt/lists/* \
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates tini gosu tzdata && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /data && chown -R node:node /app /data
 
 # From "build", not "base": prisma generate (which runs in the build stage)

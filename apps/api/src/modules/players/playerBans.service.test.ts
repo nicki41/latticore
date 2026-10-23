@@ -17,7 +17,7 @@ vi.mock("../../config/env.js", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATA_PATH__: string;
 }
 
@@ -26,7 +26,7 @@ function makeServer(overrides: Partial<Server> = {}): Server {
     id: "srv-1",
     status: "RUNNING",
     dataDir: "server1",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     ...overrides,
   } as any as Server;
 }
@@ -106,7 +106,7 @@ function makeFakePrisma() {
   const playerProfile = {
     findUnique: vi.fn(async () => null), // resolveUuid falls back to usercache.json in these tests
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return { bans, playerBan, playerProfile } as any;
 }
 
@@ -114,7 +114,7 @@ function makeFakeManager() {
   const sent: { serverId: string; command: string }[] = [];
   return {
     sent,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     manager: { sendCommand: vi.fn(async (serverId: string, command: string) => { sent.push({ serverId, command }); return ""; }) } as any,
   };
 }

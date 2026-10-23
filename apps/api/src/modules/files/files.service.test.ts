@@ -17,7 +17,7 @@ async function collect(stream: NodeJS.ReadableStream): Promise<Buffer> {
 vi.mock("../../config/env.js", () => ({ env: { get DATA_PATH() { return globalThis.__TEST_DATA_PATH__; } } }));
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATA_PATH__: string;
 }
 

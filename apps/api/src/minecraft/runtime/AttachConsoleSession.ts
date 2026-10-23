@@ -114,7 +114,13 @@ export class AttachConsoleSession {
     return [...this.buffer];
   }
 
-  async sendCommand(command: string, opts: { timeoutMs?: number; silent?: boolean } = {}): Promise<string> {
+  /**
+   * `waitFor`: resolve only once a line matching it arrives (sliced from the
+   * match onward, like `list`), instead of after the generic quiet window —
+   * for commands whose real completion comes after a pause in output, e.g.
+   * `save-all flush`, which goes silent while the main thread writes chunks.
+   */
+  async sendCommand(command: string, opts: { timeoutMs?: number; silent?: boolean; waitFor?: RegExp } = {}): Promise<string> {
     if (!this.stream) throw new Error("Console is not open.");
     const clean = singleLine(command);
     if (!clean) throw new Error("Command cannot be empty.");
@@ -125,7 +131,7 @@ export class AttachConsoleSession {
     return new Promise<string>((resolve, reject) => {
       const pending: PendingCommand = {
         command: clean,
-        responseMatcher: LIST_COMMAND.test(clean) ? LIST_RESPONSE : null,
+        responseMatcher: opts.waitFor ?? (LIST_COMMAND.test(clean) ? LIST_RESPONSE : null),
         silent: opts.silent ?? false,
         captured: [],
         quietTimer: null,
@@ -145,7 +151,10 @@ export class AttachConsoleSession {
     // One-shot backlog snapshot, deliberately independent of the live attach
     // connection's own `logs: true` replay option (whose exact backlog
     // window is Docker-version-dependent and underdocumented) — this way
-    // backlog behavior is fully within our control.
+    // backlog behavior is fully within our control. Replaces (not appends
+    // to) whatever was buffered before: re-opening after the container
+    // restarted would otherwise duplicate the last run's lines.
+    this.buffer.length = 0;
     try {
       const raw = (await this.container.logs({
         follow: false,

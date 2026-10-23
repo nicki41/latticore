@@ -4,7 +4,7 @@ import { SchedulerService } from "./scheduler.service.js";
 import { ConflictError } from "../../lib/errors.js";
 
 function makeServer(): Server {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return { id: "srv-1", dataDir: "servers/srv-1" } as any as Server;
 }
 
@@ -37,7 +37,7 @@ function makeFakePrisma(workflow: ReturnType<typeof makeWorkflow>) {
   let resolveFinished!: () => void;
   const finished = new Promise<void>((resolve) => (resolveFinished = resolve));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const prisma: any = {
     schedulerWorkflow: {
       findUnique: vi.fn(async () => workflow),
@@ -64,17 +64,17 @@ function makeFakeManager(overrides: Record<string, unknown> = {}) {
     stopServer: vi.fn(async () => {}),
     restartServer: vi.fn(async () => {}),
     ...overrides,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } as any;
 }
 
 function makeFakeBackupService() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return { create: vi.fn(async () => ({ id: "b1", fileName: "backup.tar.gz" })) } as any;
 }
 
 function makeFakeAudit() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return { record: vi.fn(async () => {}) } as any;
 }
 

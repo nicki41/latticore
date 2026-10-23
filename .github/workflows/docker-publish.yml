@@ -5,6 +5,10 @@ on:
     branches: [main, master]
     tags: ["v*.*.*"]
   workflow_dispatch: {}
+  # Weekly rebuild even without code changes, so the published images pick
+  # up security patches to their base images (Node, Debian, Temurin JRE).
+  schedule:
+    - cron: "17 4 * * 1"
 
 env:
   REGISTRY: ghcr.io
@@ -44,6 +48,7 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=api
@@ -86,6 +91,7 @@ jobs:
           file: ./runtime-images/java${{ matrix.java }}/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=runtime-java${{ matrix.java }}

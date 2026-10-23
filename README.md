@@ -17,7 +17,8 @@ A self-hosted management panel for multiple Minecraft servers. Each server runs 
 
 **Features:**
 
-- **Creation wizard** — Vanilla / Paper / Fabric fully supported; Forge / NeoForge selectable but their install pipeline isn't finished yet (see [docs/architecture.md](docs/architecture.md#server-creation-flow))
+- **Creation wizard** — Vanilla, Paper, Fabric, Forge (1.7.10 → today) and NeoForge, each installed and hash-verified by the panel itself (see [docs/architecture.md](docs/architecture.md#server-creation-flow))
+- **Reinstall / change version** — pick up the newest build, or switch Minecraft versions, without touching worlds, configs or mods
 - **Dashboard** — every server at a glance: status, uptime, players/slots, ip:port, version, and a live load sparkline
 - **Live attached console** — real stdin/stdout, not a third-party RCON wrapper
 - **File manager** with a Monaco (VS Code) editor
@@ -26,7 +27,8 @@ A self-hosted management panel for multiple Minecraft servers. Each server runs 
 - **Player management** — whitelist / op / kick / ban, playtime and session history
 - **Multi-user RBAC** — role-based *and* per-server access control (view-only vs. full)
 - **Audit log** of every meaningful action
-- **Manual backups**, plus a scheduler for recurring workflows (backup, restart, console commands, ...)
+- **Backups** — safe while the server runs (autosave paused, world flushed first), automatic retention ("keep the newest N"), lockable backups, crash-safe restore
+- **Scheduler** for recurring workflows (backup, restart, console commands, ...), on the server's own clock (`TZ`)
 - **Per-server RAM/CPU limits**
 - **Notifications** — web push (per user, zero-config VAPID) and external channels (Discord/Telegram/Slack/webhook, per server)
 - **Installable PWA** — add it to your home screen on iOS/Android or install it as a desktop app; fully responsive down to phone width
@@ -97,11 +99,11 @@ Two files, downloaded directly — no repository checkout needed:
 
 ```bash
 mkdir minecontroller && cd minecontroller
-curl -fsSLO https://raw.githubusercontent.com/nicki41/minecontroller/main/docker-compose.yml
-curl -fsSLo .env https://raw.githubusercontent.com/nicki41/minecontroller/main/.env.example
+curl -fsSLO https://raw.githubusercontent.com/nicki41/minecontroller/master/docker-compose.yml
+curl -fsSLo .env https://raw.githubusercontent.com/nicki41/minecontroller/master/.env.example
 ```
 
-Then edit `.env` — **`SESSION_SECRET`** is the only thing you must change (generate one with `openssl rand -hex 32`). Everything else has a sensible default; the database needs no configuration at all, and the host path for server data is auto-detected on boot (no absolute path to figure out). See **[docs/configuration.md](docs/configuration.md)** for the full variable reference.
+Then edit `.env` — **`SESSION_SECRET`** is the only thing you must change (generate one with `openssl rand -hex 32`); set **`TZ`** (e.g. `Europe/Berlin`) so scheduled workflows run on your local clock. Everything else has a sensible default; the database needs no configuration at all, and the host path for server data is auto-detected on boot (no absolute path to figure out). See **[docs/configuration.md](docs/configuration.md)** for the full variable reference.
 
 ## Starting the panel
 
@@ -160,7 +162,7 @@ The sidebar on the left is where everything else lives:
 Click **Create Server** and work through the wizard:
 
 1. **Name** — a name and optional description.
-2. **Software** — Vanilla, Paper, or Fabric (Forge/NeoForge are shown but not installable yet).
+2. **Software** — Vanilla, Paper, Fabric, Forge or NeoForge.
 3. **Version** — fetched live from that software's own metadata API, newest first.
 4. **Resources** — RAM and CPU limits; an optional disk limit.
 5. **Port** — leave it automatic (assigned from the configured range) or pick one explicitly.
@@ -205,6 +207,7 @@ A screenshot of every feature — the console, file manager, players, Modrinth b
 | [docs/operations.md](docs/operations.md) | First admin account, backups, updates, troubleshooting |
 | [docs/security.md](docs/security.md) | Threat model, hardening measures (OWASP-mapped), accepted residual risks |
 | [docs/development.md](docs/development.md) | Local dev setup without a full Docker rebuild, npm scripts, running tests |
+| [docs/roadmap.md](docs/roadmap.md) | Where the project is headed: game templates, multiple nodes, extensions and themes |
 
 ## Contributing
 

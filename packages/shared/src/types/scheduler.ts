@@ -27,8 +27,9 @@ export interface SchedulerWorkflowDto {
 }
 
 export interface SchedulerRunStepLogEntry {
-  stepId: string;
-  type: SchedulerStepType;
+  /** Null only for a synthetic entry explaining why a whole run failed (e.g. interrupted by a panel restart). */
+  stepId: string | null;
+  type: SchedulerStepType | null;
   ok: boolean;
   message: string | null;
   at: string;
@@ -48,4 +49,6 @@ export interface CronPreviewDto {
   valid: boolean;
   error: string | null;
   nextRuns: string[];
+  /** IANA zone the expression is evaluated in (the panel's TZ) — nextRuns should be displayed in it, not the browser's zone. */
+  timezone: string;
 }

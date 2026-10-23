@@ -13,6 +13,8 @@ export interface ServerDto {
   description: string | null;
   software: ServerSoftware;
   mcVersion: string;
+  /** Installed build/loader version (Paper build, Fabric/Forge/NeoForge loader) — null for Vanilla and legacy servers. */
+  buildVersion: string | null;
   /** LEGACY (itzg image, RCON) vs PANEL_MANAGED (panel-owned install, direct console attach). Fixed at creation, never changes. */
   runtime: ServerRuntime;
   status: ServerStatus;

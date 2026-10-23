@@ -8,6 +8,7 @@ export const PERMISSIONS = [
   "servers.stop",
   "servers.restart",
   "servers.settings.edit",
+  "servers.reinstall",
 
   "console.view",
   "console.execute",
@@ -85,6 +86,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<Exclude<SystemRoleName, "Owner">, P
     "servers.stop",
     "servers.restart",
     "servers.settings.edit",
+    "servers.reinstall",
     "console.view",
     "console.execute",
     "files.view",

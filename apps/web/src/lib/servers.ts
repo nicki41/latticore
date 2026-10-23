@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   CreateServerInput,
+  ReinstallServerInput,
   ServerDto,
   ServerSoftware,
   ServerStatsDto,
@@ -55,6 +56,17 @@ export function useServerAction(id: string, action: "start" | "stop" | "restart"
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api.post(`/servers/${id}/${action}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["servers"] });
+      qc.invalidateQueries({ queryKey: ["servers", id] });
+    },
+  });
+}
+
+export function useReinstallServer(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ReinstallServerInput) => api.post(`/servers/${id}/reinstall`, input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["servers"] });
       qc.invalidateQueries({ queryKey: ["servers", id] });

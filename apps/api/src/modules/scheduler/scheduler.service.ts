@@ -12,6 +12,7 @@ import type {
 } from "@minecraftpanel/shared";
 import { BadRequestError, ConflictError, NotFoundError } from "../../lib/errors.js";
 import { logger } from "../../lib/logger.js";
+import { env } from "../../config/env.js";
 import type { MinecraftServerManager } from "../../minecraft/MinecraftServerManager.js";
 import { BackupService } from "../backups/backups.service.js";
 import { AuditAction, type AuditService } from "../audit/audit.service.js";
@@ -20,10 +21,22 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** How many past runs to keep per workflow — enough history to debug a flaky workflow, without an every-minute cron growing the table forever. */
+const RUNS_KEPT_PER_WORKFLOW = 50;
+
+/**
+ * Cron expressions are evaluated in the panel's configured time zone (env.TZ
+ * — the host's zone, not UTC), so "0 4 * * *" means 04:00 on the server's
+ * clock, DST transitions included.
+ */
+function parseCron(cronExpr: string, currentDate: Date = new Date()) {
+  return CronExpressionParser.parse(cronExpr, { currentDate, tz: env.TZ });
+}
+
 /** Next fire time strictly after `from`, or null if the expression is somehow no longer parseable (defensive — create/update already reject invalid expressions). */
 function computeNextRun(cronExpr: string, from: Date = new Date()): Date | null {
   try {
-    return CronExpressionParser.parse(cronExpr, { currentDate: from }).next().toDate();
+    return parseCron(cronExpr, from).next().toDate();
   } catch {
     return null;
   }
@@ -144,12 +157,12 @@ export class SchedulerService {
 
   previewCron(cronExpr: string, count = 3): CronPreviewDto {
     try {
-      const interval = CronExpressionParser.parse(cronExpr);
+      const interval = parseCron(cronExpr);
       const nextRuns: string[] = [];
       for (let i = 0; i < count; i++) nextRuns.push(interval.next().toDate().toISOString());
-      return { valid: true, error: null, nextRuns };
+      return { valid: true, error: null, nextRuns, timezone: env.TZ };
     } catch (err) {
-      return { valid: false, error: err instanceof Error ? err.message : "Invalid cron expression.", nextRuns: [] };
+      return { valid: false, error: err instanceof Error ? err.message : "Invalid cron expression.", nextRuns: [], timezone: env.TZ };
     }
   }
 
@@ -163,6 +176,7 @@ export class SchedulerService {
 
   startTicking(intervalMs = 20_000): void {
     if (this.tickTimer) return;
+    this.failInterruptedRuns().catch((err) => logger.error({ err }, "Failed to close out interrupted scheduler runs"));
     this.tickTimer = setInterval(() => {
       this.tick().catch((err) => logger.error({ err }, "Scheduler tick failed"));
     }, intervalMs);
@@ -188,9 +202,28 @@ export class SchedulerService {
     }
   }
 
+  /** A run still RUNNING at boot belonged to the previous process — it will never finish, so record it as failed instead of leaving it "running" forever. */
+  private async failInterruptedRuns(): Promise<void> {
+    const { count } = await this.prisma.schedulerRun.updateMany({
+      where: { status: "RUNNING" },
+      data: { status: "FAILED", finishedAt: new Date(), log: JSON.stringify([{ stepId: null, type: null, ok: false, message: "Interrupted by a panel restart.", at: new Date().toISOString() }]) },
+    });
+    if (count) logger.info({ count }, "Marked scheduler runs interrupted by a restart as failed");
+  }
+
+  private async pruneRuns(workflowId: string): Promise<void> {
+    const stale = await this.prisma.schedulerRun.findMany({
+      where: { workflowId },
+      orderBy: { startedAt: "desc" },
+      skip: RUNS_KEPT_PER_WORKFLOW,
+      select: { id: true },
+    });
+    if (stale.length) await this.prisma.schedulerRun.deleteMany({ where: { id: { in: stale.map((r) => r.id) } } });
+  }
+
   private requireValidCron(cronExpr: string): Date {
     try {
-      return CronExpressionParser.parse(cronExpr).next().toDate();
+      return parseCron(cronExpr).next().toDate();
     } catch (err) {
       throw new BadRequestError(`Invalid cron expression: ${err instanceof Error ? err.message : "unknown error"}`);
     }
@@ -252,6 +285,7 @@ export class SchedulerService {
         }),
       ]);
       this.runningWorkflowIds.delete(workflow.id);
+      await this.pruneRuns(workflow.id).catch((err) => logger.warn({ err, workflowId: workflow.id }, "Failed to prune old scheduler runs"));
       await this.audit.record(
         AuditAction.SCHEDULER_RUN,
         { serverId: server.id, userId: workflow.createdById },

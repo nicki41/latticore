@@ -7,6 +7,7 @@ Day-to-day running of the panel: first admin setup, backups, updates, and troubl
 - [First admin account](#first-admin-account)
 - [Port allocations](#port-allocations)
 - [Backups](#backups)
+- [Reinstalling or changing a server's version](#reinstalling-or-changing-a-servers-version)
 - [Installing the panel as an app (PWA)](#installing-the-panel-as-an-app-pwa)
 - [Updates](#updates)
 - [Troubleshooting](#troubleshooting)
@@ -34,13 +35,24 @@ Removing a server's underlying container (delete, or any Docker-level container 
 
 ## Backups
 
-Every server has a manual backup action under **Server → Settings → Backups**. A backup is a `tar` archive of the server's entire data directory, stored under `data/backups/<serverId>/` — deliberately **outside** the server's own data directory, so a restore can never overwrite the archive it's restoring from.
+Every server has a **Backups** tab. A backup is a `tar` archive of the server's entire data directory, stored under `data/backups/<serverId>/` — deliberately **outside** the server's own data directory, so a restore can never overwrite the archive it's restoring from.
 
-- **Create**: works any time, including while the server is running (world data can theoretically be inconsistent if the server writes mid-backup — stop the server first if you need a guaranteed-consistent snapshot).
-- **Restore**: requires a stopped server; replaces the entire data directory with the backup's contents.
+- **Create**: works any time, including while the server is running — the panel pauses autosave and flushes the world to disk (`save-off` + `save-all flush`) before archiving and re-enables autosave (`save-on`) afterwards, so the snapshot is consistent. Only one backup or restore runs per server at a time.
+- **Retention**: turn on *Delete old backups automatically* to keep only the newest *N* unlocked backups; the oldest are deleted after each new one (manual or scheduled).
+- **Lock**: a locked backup is exempt from retention and can't be deleted until unlocked — use it for "before the big update" snapshots.
+- **Restore**: requires a stopped server; replaces the entire data directory with the backup's contents. The archive is extracted to a staging directory first and only swapped in once extraction succeeded, so a corrupt archive leaves the current files untouched.
 - **Delete**: removes only the archive file, never the live data directory.
 
 For offsite protection, periodically back up the whole `data/` folder externally as well (e.g. `rsync`/`restic` from the host) — the built-in backup feature is not a substitute for an external 3-2-1 backup strategy. Since the SQLite database (`data/db.sqlite`, plus its `-wal`/`-shm` companion files under WAL mode) also lives in this folder, an external `data/` backup automatically covers users, roles, the audit log, and server metadata too — ideally stop the api container briefly first so the SQLite files aren't being written to mid-copy.
+
+## Reinstalling or changing a server's version
+
+**Settings → Danger zone → Reinstall or change version** (needs the `servers.reinstall` permission and FULL access; the server must be stopped):
+
+- **Same version** — re-runs the install and picks up the newest build/loader for it, e.g. after an *update available* notification (a newer Paper build, Forge/NeoForge loader). Also the way out of an install that failed or was interrupted.
+- **Another version** — switches the Minecraft version for the same software. Upgrading is normal; **downgrading can corrupt worlds** that were already opened in the newer version, so take (and lock) a backup first.
+
+Worlds, `server.properties`, configs and plugins/mods are kept — only the server jar/libraries and the launch script are replaced. Plugins/mods built for the old version may need updating on the **Plugins/Mods** tab afterwards.
 
 ## Installing the panel as an app (PWA)
 
@@ -76,11 +88,20 @@ Usually a misconfigured `HOST_DATA_PATH` — see [configuration.md](configuratio
 **Server creation fails with "Provisioning failed unexpectedly", logs show `EACCES /var/run/docker.sock`**
 The `node` user inside the container didn't have access to the host-mounted Docker socket, because the socket's group GID on the host didn't match the container's GID. The entrypoint script detects the socket's actual GID at startup and adds `node` to a matching group automatically (see `docker/entrypoint.sh`) — no manual action needed. If it still happens, pull the latest image (`docker compose pull api && docker compose up -d`) — an old image may predate this fix.
 
-**Server creation fails with "Port already used"**
-The chosen or auto-assigned port is already taken by another server, or `MC_PORT_RANGE_MIN`/`MAX` is too narrow for the number of servers you're running. The same "already in use" check applies to [port allocations](#port-allocations) — a `409 Conflict` there means that exact port is already a primary port or allocation somewhere else in the instance.
+**Server creation fails with "Port already used" / "already allocated"**
+The chosen port is already taken — as another server's primary port or as any server's extra [allocation](#port-allocations); both are checked instance-wide, for new servers and new allocations alike, and auto-assignment skips both. If auto-assignment itself fails, `MC_PORT_RANGE_MIN`/`MAX` is too narrow for the number of servers and allocations in that range.
+
+**A server shows `Error` with "Failed to start the server: ... port is already allocated"**
+Docker couldn't bind one of the server's ports on the host — usually something *outside* the panel (another container or a host service) already listens on it. Free the port or change the allocation, then start again. The status line always shows Docker's actual reason when a start/stop/restart fails.
+
+**A Forge/NeoForge server ends in `Error` with "Installation failed: The installer exited with code ..."**
+The message ends with the installer's own last output line. Most often it's a network problem while the installer downloads libraries from Maven/Mojang — the installer container needs outbound internet access. Fix the cause, then **Settings → Danger zone → Reinstall** to try again.
+
+**Scheduled workflows run at the wrong hour**
+They run in the panel's `TZ` (default `UTC`). Set `TZ` in `.env` — e.g. `TZ=Europe/Berlin` — and recreate the container (`docker compose up -d`). The scheduler editor shows which zone it's using.
 
 **Live console shows nothing / commands don't arrive**
-The server must be fully up (status `Running`) — for panel-managed servers the console is a direct stdin/stdout attach to the container, which only exists once the Minecraft process is actually running; for legacy servers, commands go over RCON, which only responds once Minecraft has finished booting. See [architecture.md](architecture.md#console-attached-stdin-not-rcon).
+The server must be fully up (status `Running`) — for panel-managed servers the console is a direct stdin/stdout attach to the container, which only exists once the Minecraft process is actually running; for legacy servers, commands go over RCON, which only responds once Minecraft has finished booting. See [architecture.md](architecture.md#console-attached-stdin-not-rcon). Reaching the panel under a different address than `WEB_ORIGIN` (e.g. its LAN IP) also blocks the console's WebSocket — list every address in `WEB_ORIGIN`, comma-separated.
 
 **`database is locked` / `SQLITE_BUSY` in the logs**
 Can happen under brief concurrent SQLite writes. The panel enables WAL mode and a 5-second `busy_timeout` on startup, which makes this practically a non-issue in normal use — if it still happens (e.g. under heavy parallel load), restart the api container. For serious multi-user load with lots of concurrent writes, SQLite simply isn't the right tool — see [architecture.md](architecture.md#design-decisions).

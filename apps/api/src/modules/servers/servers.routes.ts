@@ -6,19 +6,26 @@ import { z } from "zod";
 import {
   createServerSchema,
   effectiveServerPermissions,
+  reinstallServerSchema,
   updateServerSettingsSchema,
   SERVER_SOFTWARE,
   type AccessLevel,
   type ServerStatsDto,
 } from "@minecraftpanel/shared";
 import { AuditAction } from "../audit/audit.service.js";
-import { BackupService } from "../backups/backups.service.js";
 import { serializeServer } from "./servers.serialize.js";
 import { BadRequestError, NotFoundError } from "../../lib/errors.js";
 import { env } from "../../config/env.js";
 
 const versionsQuerySchema = z.object({ software: z.enum(SERVER_SOFTWARE) });
-const deleteQuerySchema = z.object({ keepFiles: z.coerce.boolean().optional().default(false) });
+// Not z.coerce.boolean(): that's Boolean(value), which turns the string
+// "false" into true.
+const deleteQuerySchema = z.object({
+  keepFiles: z
+    .enum(["true", "false", "1", "0"])
+    .optional()
+    .transform((v) => v === "true" || v === "1"),
+});
 const historyQuerySchema = z.object({ range: z.enum(["5m", "15m", "1h", "6h", "24h"]).default("1h") });
 
 const ICON_FILENAME = "server-icon.png";
@@ -26,8 +33,6 @@ const MAX_ICON_BYTES = 2 * 1024 * 1024;
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
 export async function serversRoutes(fastify: FastifyInstance) {
-  const backupService = new BackupService(fastify.prisma);
-
   fastify.get("/versions", { preHandler: fastify.requirePermission("servers.create") }, async (request, reply) => {
     const { software } = versionsQuerySchema.parse(request.query);
     const versions = await fastify.serverManager.listVersions(software);
@@ -177,13 +182,25 @@ export async function serversRoutes(fastify: FastifyInstance) {
     return reply.status(204).send();
   });
 
+  fastify.post("/:id/reinstall", { preHandler: fastify.requireServerAccess("servers.reinstall") }, async (request, reply) => {
+    const input = reinstallServerSchema.parse(request.body ?? {});
+    const server = request.mcServer!;
+    await fastify.serverManager.reinstallServer(server.id, input);
+    await fastify.audit.record(
+      AuditAction.SERVER_REINSTALL,
+      { userId: request.user!.id, serverId: server.id, ipAddress: request.ip },
+      { fromVersion: server.mcVersion, toVersion: input.mcVersion ?? server.mcVersion },
+    );
+    return reply.status(202).send();
+  });
+
   fastify.delete("/:id", { preHandler: fastify.requireServerAccess("servers.delete") }, async (request, reply) => {
     const { keepFiles } = deleteQuerySchema.parse(request.query);
     const serverId = request.mcServer!.id;
     const name = request.mcServer!.name;
 
     await fastify.serverManager.deleteServer(serverId, { keepFiles });
-    await backupService.deleteAllForServer(serverId);
+    await fastify.backupService.deleteAllForServer(serverId);
     fastify.metricsHistory.clear(serverId);
 
     await fastify.audit.record(AuditAction.SERVER_DELETE, {
