@@ -1,5 +1,6 @@
 import { httpFetchJson } from "../../lib/httpFetch.js";
 import { createTtlCache } from "../../lib/ttlCache.js";
+import { compareMcVersions } from "@minecraftpanel/shared";
 
 const MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -8,6 +9,7 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 export const LEGACY_JAVA_MAJOR = 8;
 
 interface MojangVersionManifest {
+  latest: { release: string };
   versions: { id: string; url: string }[];
 }
 
@@ -16,9 +18,9 @@ export interface MojangVersionDetail {
   javaVersion?: { majorVersion: number };
 }
 
-const manifestUrls = createTtlCache<Map<string, string>>(ONE_HOUR_MS, async () => {
+const manifestIndex = createTtlCache<{ urls: Map<string, string>; latestRelease: string }>(ONE_HOUR_MS, async () => {
   const manifest = await httpFetchJson<MojangVersionManifest>(MANIFEST_URL, "minecraftpanel-runtime-images");
-  return new Map(manifest.versions.map((v) => [v.id, v.url]));
+  return { urls: new Map(manifest.versions.map((v) => [v.id, v.url])), latestRelease: manifest.latest.release };
 });
 
 // Per-version detail JSON is immutable once Mojang publishes a version — no
@@ -45,7 +47,7 @@ export async function getMojangVersionDetail(mcVersion: string, userAgent: strin
 }
 
 async function fetchDetail(mcVersion: string, userAgent: string): Promise<MojangVersionDetail | null> {
-  const urls = await manifestUrls();
+  const { urls } = await manifestIndex();
   const url = urls.get(mcVersion);
   if (!url) return null;
   return httpFetchJson<MojangVersionDetail>(url, userAgent);
@@ -53,7 +55,19 @@ async function fetchDetail(mcVersion: string, userAgent: string): Promise<Mojang
 
 export async function resolveJavaMajor(mcVersion: string, userAgent: string): Promise<number> {
   const detail = await getMojangVersionDetail(mcVersion, userAgent);
-  return detail?.javaVersion?.majorVersion ?? LEGACY_JAVA_MAJOR;
+  if (detail?.javaVersion?.majorVersion) return detail.javaVersion.majorVersion;
+  if (!detail) {
+    // Not a Mojang version id at all — e.g. a loader pre-release built
+    // against an upcoming Minecraft version Mojang hasn't released under
+    // that exact id. Old-Java fallback would be wrong there; the newest
+    // release's requirement is the best available answer.
+    const { latestRelease } = await manifestIndex();
+    if (compareMcVersions(mcVersion, latestRelease) > 0) {
+      const latest = await getMojangVersionDetail(latestRelease, userAgent);
+      if (latest?.javaVersion?.majorVersion) return latest.javaVersion.majorVersion;
+    }
+  }
+  return LEGACY_JAVA_MAJOR;
 }
 
 // Published by .github/workflows/docker-publish.yml (multi-arch, from

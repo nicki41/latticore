@@ -28,7 +28,9 @@ Every server at a glance: status, uptime, online player count, ip:port, software
 
 ## Server creation wizard
 
-A six-step wizard from a bare name to a running server. **Vanilla, Paper, and Fabric are fully supported** — the panel resolves, downloads, and hash-verifies the actual server jar itself, live against that software's own metadata API (Mojang Piston-Meta, PaperMC, Fabric Meta), rather than delegating to a third-party image. Forge/NeoForge are selectable but their install pipeline isn't finished yet (see [architecture.md#server-creation-flow](architecture.md#server-creation-flow)).
+A six-step wizard from a bare name to a running server. **Vanilla, Paper, Fabric, Forge and NeoForge** are all installed by the panel itself, live against each project's own metadata API (Mojang Piston-Meta, PaperMC, Fabric Meta, Forge/NeoForge Maven) rather than delegating to a third-party image: jars are downloaded and hash-verified directly, and Forge/NeoForge's installer program is SHA-256-verified and then run in a throwaway, locked-down container (see [architecture.md#server-creation-flow](architecture.md#server-creation-flow)).
+
+An existing server can be **reinstalled or moved to another Minecraft version** later from **Settings → Danger zone** — worlds, configs and plugins/mods stay, only the server software is replaced.
 
 | Name & description | Software | Version |
 |---|---|---|
@@ -66,13 +68,18 @@ Search and install plugins/mods straight from the panel, matched automatically t
 
 ## Backups
 
-Manual, on-demand backups — a `tar` archive of the server's entire data directory, stored outside that directory so a restore can never overwrite the archive it's restoring from. Create, download, restore, or delete from one list.
+A `tar` archive of the server's entire data directory, stored outside that directory so a restore can never overwrite the archive it's restoring from. Create, download, restore, lock, or delete from one list.
+
+- **Safe while running** — autosave is paused and the world flushed to disk (`save-off` / `save-all flush`) for the duration of the archive, then resumed.
+- **Retention** — optionally keep only the newest *N* backups; older ones are deleted after each new backup, manual or scheduled.
+- **Locking** — a locked backup never counts toward retention and can't be deleted until unlocked.
+- **Crash-safe restore** — the archive is extracted to a staging directory first and swapped in only once it fully succeeded; a corrupt archive leaves the current files untouched.
 
 ![Backups list with a created backup](assets/screenshots/backups.png)
 
 ## Scheduler
 
-Cron-driven workflows of ordered steps — console commands, start/stop/restart, or a backup — each with an optional delay before the next step runs. Point it at a nightly backup, a scheduled restart, or a `say` announcement before one.
+Cron-driven workflows of ordered steps — console commands, start/stop/restart, or a backup — each with an optional delay before the next step runs. Point it at a nightly backup, a scheduled restart, or a `say` announcement before one. Schedules run in the panel's configured time zone (`TZ`), DST included — the editor shows the next runs in that zone.
 
 ![Scheduler workflow list](assets/screenshots/scheduler.png)
 

@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 import { useWorkflows, useUpdateWorkflow, useDeleteWorkflow, useRunWorkflowNow, useWorkflowRuns } from "@/lib/scheduler";
+import { formatInZone, useSystemInfo } from "@/lib/system";
 import { WorkflowEditorDialog } from "./WorkflowEditorDialog";
 
 const RUN_STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive"> = {
@@ -67,6 +68,7 @@ export function SchedulerCard({ server }: { server: ServerDto }) {
   const updateWorkflow = useUpdateWorkflow(server.id);
   const deleteWorkflow = useDeleteWorkflow(server.id);
   const runNow = useRunWorkflowNow(server.id);
+  const timezone = useSystemInfo().data?.timezone;
 
   const [editorWorkflow, setEditorWorkflow] = useState<SchedulerWorkflowDto | null | undefined>(undefined);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -105,7 +107,10 @@ export function SchedulerCard({ server }: { server: ServerDto }) {
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <div>
           <CardTitle>Scheduler</CardTitle>
-          <CardDescription>Automate console commands and server actions on a recurring schedule.</CardDescription>
+          <CardDescription>
+            Automate console commands and server actions on a recurring schedule.
+            {timezone && <> Schedules run on the server's clock ({timezone}).</>}
+          </CardDescription>
         </div>
         {canManage && (
           <Button size="sm" onClick={() => setEditorWorkflow(null)}>
@@ -126,7 +131,10 @@ export function SchedulerCard({ server }: { server: ServerDto }) {
                   <Switch checked={workflow.enabled} onCheckedChange={(v) => toggleEnabled(workflow, v)} disabled={!canManage} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{workflow.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p
+                      className="truncate text-xs text-muted-foreground"
+                      title={workflow.nextRunAt && workflow.enabled ? `Next run: ${formatInZone(workflow.nextRunAt, timezone)}${timezone ? ` (${timezone})` : ""}` : undefined}
+                    >
                       {describeCron(workflow.cronExpr)} · {workflow.steps.length} step{workflow.steps.length === 1 ? "" : "s"}
                       {workflow.nextRunAt && workflow.enabled
                         ? ` · next ${formatDistanceToNow(new Date(workflow.nextRunAt), { addSuffix: true })}`

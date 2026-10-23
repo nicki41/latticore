@@ -21,7 +21,7 @@ vi.mock("../config/env.js", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATA_PATH__: string;
 }
 
@@ -68,6 +68,7 @@ const { MinecraftServerManager } = await import("./MinecraftServerManager.js");
 /** In-memory stand-in for the slice of PrismaClient.server MinecraftServerManager actually calls. */
 function makeFakePrisma() {
   const rows = new Map<string, Record<string, unknown>>();
+  const allocations: { id: string; serverId: string; port: number }[] = [];
 
   function apply(data: Record<string, unknown>, base: Record<string, unknown> = {}): Record<string, unknown> {
     return {
@@ -134,19 +135,30 @@ function makeFakePrisma() {
           const notIn = (args.where.status as { notIn: string[] }).notIn;
           values = values.filter((r) => !notIn.includes(r.status as string));
         }
+        if (args.where?.status && typeof args.where.status === "object" && "in" in args.where.status) {
+          const inList = (args.where.status as { in: string[] }).in;
+          values = values.filter((r) => inList.includes(r.status as string));
+        }
         if (args.select?.port) return values.map((r) => ({ port: r.port }));
         return values.map((r) => ({ ...r }));
       }),
       delete: vi.fn(async ({ where }: { where: { id: string } }) => {
         rows.delete(where.id);
       }),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } as any,
-    // No test currently exercises extra port allocations — always empty,
-    // same as a freshly migrated DB with no ServerAllocation rows yet.
+    // Extra port allocations — empty unless a test pushes rows into
+    // `allocations`, same as a freshly migrated DB with no ServerAllocation rows.
+    allocations,
     serverAllocation: {
-      findMany: vi.fn(async () => []),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      findMany: vi.fn(async (args: { where?: { serverId?: string } } = {}) =>
+        allocations.filter((a) => !args.where?.serverId || a.serverId === args.where.serverId).map((a) => ({ ...a })),
+      ),
+      findUnique: vi.fn(async ({ where }: { where: { port: number } }) => {
+        const match = allocations.find((a) => a.port === where.port);
+        return match ? { ...match } : null;
+      }),
+       
     } as any,
   };
 }
@@ -173,12 +185,14 @@ function makeFakeRuntime(overrides: Partial<MinecraftRuntime> = {}): MinecraftRu
     remove: vi.fn(async () => {}),
     inspect: vi.fn(async () => ({
       State: { Running: true, Status: "running", ExitCode: 0, Error: "" },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     })) as any,
     getStats: vi.fn(async () => null),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     getLogStream: vi.fn(async () => ({}) as any),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    readLogs: vi.fn(async () => ""),
+    runInstaller: vi.fn(async () => ({ exitCode: 0, output: "" })),
+     
     getContainer: vi.fn(() => fakeContainer as any),
     ...overrides,
   };
@@ -361,14 +375,16 @@ describe("MinecraftServerManager", () => {
       await expect(manager.startServer(server.id as string)).rejects.toThrow(/no container yet/i);
     });
 
-    it("startServer moves through STARTING then RUNNING and calls runtime.start", async () => {
+    it("startServer recreates the container from current settings, then moves through STARTING to RUNNING", async () => {
       const prisma = makeFakePrisma();
-      const server = await createRunningishServer(prisma);
+      const server = await createRunningishServer(prisma, { memoryMb: 3072 });
       const runtime = makeFakeRuntime();
       const manager = new MinecraftServerManager(prisma as never, runtime);
 
       await manager.startServer(server.id as string);
-      expect(runtime.start).toHaveBeenCalledWith("container-existing");
+      expect(runtime.remove).toHaveBeenCalledWith("container-existing", true);
+      expect(runtime.createContainer).toHaveBeenCalledWith(expect.objectContaining({ memoryMb: 3072 }));
+      expect(runtime.start).toHaveBeenCalledWith("container-abc123");
 
       await vi.waitFor(async () => {
         const row = await prisma.server.findUnique({ where: { id: server.id as string } });
@@ -545,6 +561,233 @@ describe("MinecraftServerManager", () => {
     });
   });
 
+  describe("port conflicts", () => {
+    async function createServerWithAllocation(prisma: ReturnType<typeof makeFakePrisma>, allocationPort: number) {
+      const owner = await prisma.server.create({
+        data: { name: "Owner", software: "VANILLA", mcVersion: "1.21.1", containerName: "mcpanel-owner-aaaa0000", port: 30000, memoryMb: 1024, cpuCores: 1, dataDir: "servers/owner" },
+      });
+      prisma.allocations.push({ id: "alloc-1", serverId: owner.id as string, port: allocationPort });
+      return owner;
+    }
+
+    it("rejects an explicit port that's another server's extra allocation", async () => {
+      const prisma = makeFakePrisma();
+      await createServerWithAllocation(prisma, 30001);
+      const manager = new MinecraftServerManager(prisma as never, makeFakeRuntime());
+      await expect(
+        manager.createServer({ name: "Clash", software: "VANILLA", mcVersion: "1.21.1", memoryMb: 1024, cpuCores: 1, port: 30001, eulaAccepted: true }),
+      ).rejects.toThrow(/already allocated to another server/i);
+    });
+
+    it("skips ports taken by extra allocations when auto-assigning", async () => {
+      const prisma = makeFakePrisma();
+      await createServerWithAllocation(prisma, 30001); // 30000 = primary, 30001 = allocation
+      const manager = new MinecraftServerManager(prisma as never, makeFakeRuntime());
+      const server = await manager.createServer({ name: "Auto", software: "VANILLA", mcVersion: "1.21.1", memoryMb: 1024, cpuCores: 1, eulaAccepted: true });
+      expect(server.port).toBe(30002);
+    });
+
+    it("findPortConflict distinguishes the caller's own ports from other servers' without naming them", async () => {
+      const prisma = makeFakePrisma();
+      const owner = await createServerWithAllocation(prisma, 30001);
+      const manager = new MinecraftServerManager(prisma as never, makeFakeRuntime());
+      expect(await manager.findPortConflict(30000, { serverId: owner.id as string })).toMatch(/this server's primary port/);
+      expect(await manager.findPortConflict(30001, { serverId: owner.id as string })).toMatch(/allocated to this server/);
+      expect(await manager.findPortConflict(30001, { serverId: "someone-else" })).toBe("Port 30001 is already allocated to another server.");
+      expect(await manager.findPortConflict(30009)).toBeNull();
+    });
+  });
+
+  describe("failure handling", () => {
+    async function createStoppedServer(prisma: ReturnType<typeof makeFakePrisma>, extra: Record<string, unknown> = {}) {
+      return prisma.server.create({
+        data: {
+          name: "Fragile",
+          software: "VANILLA",
+          mcVersion: "1.21.1",
+          containerName: "mcpanel-fragile-deadbeef",
+          port: 30008,
+          memoryMb: 1024,
+          cpuCores: 1,
+          dataDir: "servers/fragile",
+          containerId: "container-existing",
+          status: "STOPPED",
+          ...extra,
+        },
+      });
+    }
+
+    it("startServer on an already-running server is a no-op, not a wedge in STARTING", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createStoppedServer(prisma, { status: "RUNNING" });
+      const runtime = makeFakeRuntime();
+      const manager = new MinecraftServerManager(prisma as never, runtime);
+
+      await manager.startServer(server.id as string);
+
+      expect(runtime.start).not.toHaveBeenCalled();
+      expect((await prisma.server.findUnique({ where: { id: server.id as string } }))?.status).toBe("RUNNING");
+    });
+
+    it("a failed start ends in ERROR with Docker's reason, never stuck in STARTING", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createStoppedServer(prisma);
+      const runtime = makeFakeRuntime({
+        start: vi.fn(async () => {
+          throw new Error("driver failed programming external connectivity: port is already allocated");
+        }),
+         
+        inspect: vi.fn(async () => ({ State: { Running: false, Status: "created", ExitCode: 0, Error: "" } })) as any,
+      });
+      const manager = new MinecraftServerManager(prisma as never, runtime);
+
+      await expect(manager.startServer(server.id as string)).rejects.toThrow(/port is already allocated/);
+
+      const row = await prisma.server.findUnique({ where: { id: server.id as string } });
+      expect(row?.status).toBe("ERROR");
+      expect(row?.statusDetail).toMatch(/Failed to start the server: .*port is already allocated/);
+    });
+
+    it("a failed stop of a still-running container settles back to RUNNING", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createStoppedServer(prisma, { status: "RUNNING" });
+      const runtime = makeFakeRuntime({
+        stop: vi.fn(async () => {
+          throw new Error("daemon timeout");
+        }),
+      });
+      const manager = new MinecraftServerManager(prisma as never, runtime);
+
+      await expect(manager.stopServer(server.id as string)).rejects.toThrow(/daemon timeout/);
+      expect((await prisma.server.findUnique({ where: { id: server.id as string } }))?.status).toBe("RUNNING");
+    });
+
+    it("refuses to start a server that's mid-install", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createStoppedServer(prisma, { status: "INSTALLING" });
+      const manager = new MinecraftServerManager(prisma as never, makeFakeRuntime());
+      await expect(manager.startServer(server.id as string)).rejects.toThrow(/while it's installing/);
+    });
+  });
+
+  describe("recoverInterruptedOperations", () => {
+    async function createServerIn(prisma: ReturnType<typeof makeFakePrisma>, status: string, extra: Record<string, unknown> = {}) {
+      return prisma.server.create({
+        data: {
+          name: `Was ${status}`,
+          software: "VANILLA",
+          mcVersion: "1.21.1",
+          containerName: `mcpanel-${status.toLowerCase()}-deadbeef`,
+          port: 30000 + Math.floor(Math.random() * 10),
+          memoryMb: 1024,
+          cpuCores: 1,
+          dataDir: `servers/${status.toLowerCase()}`,
+          containerId: "container-existing",
+          status,
+          ...extra,
+        },
+      });
+    }
+
+    it("settles STOPPING with an exited container to STOPPED", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createServerIn(prisma, "STOPPING");
+      const runtime = makeFakeRuntime({
+         
+        inspect: vi.fn(async () => ({ State: { Running: false, Status: "exited", ExitCode: 0, Error: "" } })) as any,
+      });
+      await new MinecraftServerManager(prisma as never, runtime).recoverInterruptedOperations();
+      expect((await prisma.server.findUnique({ where: { id: server.id as string } }))?.status).toBe("STOPPED");
+    });
+
+    it("marks an install that never got a container as ERROR, pointing at Reinstall", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createServerIn(prisma, "INSTALLING", { containerId: null });
+      await new MinecraftServerManager(prisma as never, makeFakeRuntime()).recoverInterruptedOperations();
+      const row = await prisma.server.findUnique({ where: { id: server.id as string } });
+      expect(row?.status).toBe("ERROR");
+      expect(row?.statusDetail).toMatch(/Reinstall/);
+    });
+
+    it("marks a PANEL_MANAGED server RUNNING if it printed its ready line since the container started", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createServerIn(prisma, "STARTING", { runtime: "PANEL_MANAGED" });
+      const runtime = makeFakeRuntime({
+         
+        inspect: vi.fn(async () => ({ State: { Running: true, Status: "running", ExitCode: 0, Error: "", StartedAt: "2026-10-23T10:00:00Z" } })) as any,
+        readLogs: vi.fn(async () => '[10:00:30] [Server thread/INFO]: Done (12.3s)! For help, type "help"\n'),
+      });
+      await new MinecraftServerManager(prisma as never, runtime).recoverInterruptedOperations();
+
+      expect(runtime.readLogs).toHaveBeenCalledWith("container-existing", { since: Date.parse("2026-10-23T10:00:00Z") / 1000 });
+      expect((await prisma.server.findUnique({ where: { id: server.id as string } }))?.status).toBe("RUNNING");
+    });
+
+    it("keeps watching a PANEL_MANAGED server that's still booting instead of guessing", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createServerIn(prisma, "STARTING", { runtime: "PANEL_MANAGED" });
+      const runtime = makeFakeRuntime({
+         
+        inspect: vi.fn(async () => ({ State: { Running: true, Status: "running", ExitCode: 0, Error: "", StartedAt: "2026-10-23T10:00:00Z" } })) as any,
+      });
+      await new MinecraftServerManager(prisma as never, runtime).recoverInterruptedOperations();
+      expect((await prisma.server.findUnique({ where: { id: server.id as string } }))?.status).toBe("STARTING");
+
+      const container = runtime.getContainer("container-existing") as unknown as ReturnType<typeof makeFakeAttachContainer>;
+      await emitReadyLineUntil(container, async () => {
+        expect((await prisma.server.findUnique({ where: { id: server.id as string } }))?.status).toBe("RUNNING");
+      });
+    });
+  });
+
+  describe("reinstallServer", () => {
+    async function createInstalledServer(prisma: ReturnType<typeof makeFakePrisma>, extra: Record<string, unknown> = {}) {
+      return prisma.server.create({
+        data: {
+          name: "Reinstallable",
+          software: "VANILLA",
+          mcVersion: "1.21.1",
+          containerName: "mcpanel-reinstallable-deadbeef",
+          port: 30004,
+          memoryMb: 1024,
+          cpuCores: 1,
+          dataDir: "servers/reinstallable",
+          containerId: "container-existing",
+          status: "STOPPED",
+          runtime: "PANEL_MANAGED",
+          eulaAccepted: true,
+          javaImageTag: "mcpanel-runtime:java21",
+          ...extra,
+        },
+      });
+    }
+
+    it("refuses while the server is running", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createInstalledServer(prisma, { status: "RUNNING" });
+      await expect(new MinecraftServerManager(prisma as never, makeFakeRuntime()).reinstallServer(server.id as string)).rejects.toThrow(/stop the server/i);
+    });
+
+    it("rejects a version the provider doesn't offer", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createInstalledServer(prisma);
+      await expect(
+        new MinecraftServerManager(prisma as never, makeFakeRuntime()).reinstallServer(server.id as string, { mcVersion: "0.0.1" }),
+      ).rejects.toThrow(/unknown vanilla version/i);
+    });
+
+    it("removes the old container and runs the install pipeline again", async () => {
+      const prisma = makeFakePrisma();
+      const server = await createInstalledServer(prisma);
+      const runtime = makeFakeRuntime();
+      await new MinecraftServerManager(prisma as never, runtime).reinstallServer(server.id as string);
+
+      expect(runtime.remove).toHaveBeenCalledWith("container-existing", true);
+      await vi.waitFor(() => expect(installerInstallMock).toHaveBeenCalledWith(expect.objectContaining({ id: server.id }), expect.anything()));
+      await vi.waitFor(() => expect(runtime.createContainer).toHaveBeenCalled());
+    });
+  });
+
   describe("reconcile", () => {
     it("flips a server to ERROR when its container has disappeared", async () => {
       const prisma = makeFakePrisma();
@@ -588,7 +831,7 @@ describe("MinecraftServerManager", () => {
         },
       });
       const runtime = makeFakeRuntime({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         inspect: vi.fn(async () => ({ State: { Running: false, Status: "exited", ExitCode: 137, Error: "" } })) as any,
       });
       const manager = new MinecraftServerManager(prisma as never, runtime);
@@ -616,7 +859,7 @@ describe("MinecraftServerManager", () => {
         },
       });
       const runtime = makeFakeRuntime({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         inspect: vi.fn(async () => ({ State: { Running: false, Status: "exited", ExitCode: 137, Error: "" } })) as any,
       });
       const manager = new MinecraftServerManager(prisma as never, runtime);

@@ -48,7 +48,7 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 export default function DashboardPage() {
   const { data, isLoading } = useServers();
   const { user, hasPermission } = useAuth();
-  const servers = data?.servers ?? [];
+  const servers = useMemo(() => data?.servers ?? [], [data]);
   const online = servers.filter((s) => s.status === "RUNNING").length;
 
   const { avgLoad, totalOnlinePlayers } = useFleetOverview(servers);

@@ -15,7 +15,7 @@ import { ForbiddenError } from "../../lib/errors.js";
 async function requireSameOrigin(request: FastifyRequest, _reply: FastifyReply) {
   if (env.NODE_ENV !== "production") return;
   const origin = request.headers.origin;
-  if (origin !== env.WEB_ORIGIN) {
+  if (!origin || !env.WEB_ORIGINS.includes(origin)) {
     throw new ForbiddenError("Cross-origin WebSocket connections are not allowed.");
   }
 }

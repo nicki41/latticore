@@ -12,6 +12,7 @@ export function serializeServer(server: Server, myAccessLevel: AccessLevel, allo
     description: server.description,
     software: server.software as ServerSoftware,
     mcVersion: server.mcVersion,
+    buildVersion: server.buildVersion,
     runtime: server.runtime as ServerRuntime,
     status: server.status as ServerStatus,
     statusDetail: server.statusDetail,

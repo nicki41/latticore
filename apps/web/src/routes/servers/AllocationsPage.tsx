@@ -5,7 +5,7 @@ import type { ServerDto } from "@minecraftpanel/shared";
 import { useServers } from "@/lib/servers";
 import { useCreateAllocation, useDeleteAllocation } from "@/lib/allocations";
 import { useAuth } from "@/lib/auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

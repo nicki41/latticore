@@ -5,6 +5,7 @@ import Fastify, { type FastifyBaseLogger } from "fastify";
 import fastifyCors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCsrf from "@fastify/csrf-protection";
+import fastifyHelmet from "@fastify/helmet";
 import fastifyRateLimit from "@fastify/rate-limit";
 import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
@@ -17,6 +18,7 @@ import errorHandlerPlugin from "./plugins/error-handler.js";
 import auditPlugin from "./plugins/audit.js";
 import authPlugin from "./plugins/auth.js";
 import minecraftPlugin from "./plugins/minecraft.js";
+import backupsPlugin from "./plugins/backups.js";
 import schedulerPlugin from "./plugins/scheduler.js";
 import liveSessionsPlugin from "./plugins/liveSessions.js";
 import metricsHistoryPlugin from "./plugins/metricsHistory.js";
@@ -38,15 +40,47 @@ export async function buildApp() {
     // being inferred as pino's exact type — otherwise every unparameterized
     // `FastifyInstance` elsewhere in the app stops structurally matching.
     loggerInstance: logger as FastifyBaseLogger,
-    trustProxy: true,
+    trustProxy: env.TRUST_PROXY,
     bodyLimit: 10 * 1024 * 1024, // 10MB JSON bodies; file uploads use multipart with their own limit
   });
 
   await app.register(errorHandlerPlugin);
   await app.register(prismaPlugin);
 
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        // Radix/sonner inject <style> elements and the boot splash in
+        // index.html uses a style attribute — both legitimate, both inline.
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        // https: for Modrinth project icons (cdn.modrinth.com and whatever
+        // CDN a project links); data:/blob: for the inline favicon and the
+        // icon-crop preview.
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        fontSrc: ["'self'", "data:"],
+        connectSrc: ["'self'"],
+        workerSrc: ["'self'", "blob:"],
+        manifestSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    // Only meaningful once served over HTTPS (COOKIE_SECURE is the existing
+    // "this deployment is behind TLS" switch) — sent over plain HTTP it would
+    // be ignored anyway, but there it would also be a lie.
+    strictTransportSecurity: env.COOKIE_SECURE ? { maxAge: 15552000, includeSubDomains: false } : false,
+    // The SPA loads cross-origin images (Modrinth icons) — the default
+    // require-corp would block every one of them.
+    crossOriginEmbedderPolicy: false,
+  });
+
   await app.register(fastifyCors, {
-    origin: env.NODE_ENV === "production" ? env.WEB_ORIGIN : true,
+    origin: env.NODE_ENV === "production" ? env.WEB_ORIGINS : true,
     credentials: true,
   });
 
@@ -92,6 +126,7 @@ export async function buildApp() {
   await app.register(auditPlugin);
   await app.register(authPlugin);
   await app.register(minecraftPlugin);
+  await app.register(backupsPlugin);
   await app.register(schedulerPlugin);
   await app.register(liveSessionsPlugin);
   await app.register(metricsHistoryPlugin);

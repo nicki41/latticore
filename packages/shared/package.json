@@ -12,17 +12,18 @@
     }
   },
   "scripts": {
-    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
-    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint src"
   },
   "dependencies": {
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
-    "vitest": "^2.1.2"
+    "vitest": "^5.0.5"
   }
 }

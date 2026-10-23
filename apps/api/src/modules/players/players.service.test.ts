@@ -17,7 +17,7 @@ vi.mock("../../config/env.js", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATA_PATH__: string;
 }
 
@@ -40,12 +40,12 @@ function makeFakePrisma(profiles: FakeProfileRow[]) {
         return match ?? null;
       }),
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } as any;
 }
 
 function makeFakeManager(sendCommand: (serverId: string, command: string) => Promise<string>) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return { sendCommand: vi.fn(sendCommand) } as any;
 }
 
@@ -70,7 +70,7 @@ function makeServer(overrides: Partial<Server> = {}): Server {
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } as any as Server;
 }
 

@@ -140,7 +140,7 @@ export default function ServerPlayersPage() {
     onSetGamemode: (username, mode) => void run(setGamemode, { username, mode }, "Changed gamemode for"),
   };
 
-  const players = data?.players ?? [];
+  const players = useMemo(() => data?.players ?? [], [data]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();

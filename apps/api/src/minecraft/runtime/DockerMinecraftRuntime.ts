@@ -29,6 +29,23 @@ export interface CreateContainerOptions {
   javaImageTag?: string;
 }
 
+export interface RunInstallerOptions {
+  serverId: string;
+  /** Distinct from the server's own long-lived container name — both may briefly coexist during a reinstall. */
+  containerName: string;
+  javaImageTag: string;
+  memoryMb: number;
+  /** Everything after `java` on the command line; runs with /data (the server's data dir) as its working directory. */
+  javaArgs: string[];
+  timeoutMs: number;
+}
+
+export interface InstallerRunResult {
+  exitCode: number;
+  /** Tail of the installer's combined stdout/stderr, for error reporting. */
+  output: string;
+}
+
 export interface ContainerStats {
   cpuPercent: number;
   memoryUsageBytes: number;
@@ -80,14 +97,16 @@ export class DockerMinecraftRuntime {
     logger.info({ image }, "Image pull complete.");
   }
 
+  /** Host-side path of a server's data dir, for bind mounts. Always forward-slash: it's interpreted by the Docker daemon (always Linux, even under Docker Desktop), never by the API process's own OS. */
+  private async hostDataDirFor(serverId: string): Promise<string> {
+    const hostDataPath = await resolveHostDataPath();
+    return `${hostDataPath.replace(/\/+$/, "")}/servers/${serverId}`;
+  }
+
   async createContainer(options: CreateContainerOptions): Promise<string> {
     await this.ensureNetwork();
 
-    // Always forward-slash: this string is interpreted by the Docker
-    // daemon (always Linux, even under Docker Desktop), never by the API
-    // process's own OS — see README "Docker socket & host paths".
-    const hostDataPath = await resolveHostDataPath();
-    const hostDataDir = `${hostDataPath.replace(/\/+$/, "")}/servers/${options.serverId}`;
+    const hostDataDir = await this.hostDataDirFor(options.serverId);
     const extraPorts = options.extraPorts ?? [];
     const sharedHostConfig = {
       Memory: options.memoryMb * 1024 * 1024,
@@ -111,11 +130,12 @@ export class DockerMinecraftRuntime {
       const container = await this.docker.createContainer({
         name: options.containerName,
         Image: image,
-        // No env vars at all: ServerInstaller already wrote eula.txt and a
-        // fully-formed .mcpanel-launch.sh directly onto /data before this
-        // container was ever created — see the entrypoint, which just
-        // verifies those exist and execs the launch script.
-        Env: [],
+        // Only TZ (so log timestamps match the panel's timezone): eula.txt
+        // and a fully-formed .mcpanel-launch.sh were already written onto
+        // /data by ServerInstaller before this container was ever created —
+        // see the entrypoint, which just verifies those exist and execs the
+        // launch script.
+        Env: [`TZ=${env.TZ}`],
         Tty: true,
         // Raw (non-multiplexed) attach for direct console access — no RCON
         // involved at all for this runtime kind. StdinOnce:false keeps
@@ -155,6 +175,7 @@ export class DockerMinecraftRuntime {
       RCON_PORT: String(CONTAINER_RCON_PORT),
       UID: "1000",
       GID: "1000",
+      TZ: env.TZ,
       // Deliberately no MOTD/MAX_PLAYERS/DIFFICULTY/MODE/ENABLE_WHITELIST/
       // ONLINE_MODE/PVP/VIEW_DISTANCE/SIMULATION_DISTANCE here: the itzg
       // image re-applies any of these that ARE set into server.properties
@@ -202,7 +223,11 @@ export class DockerMinecraftRuntime {
   }
 
   async start(containerId: string): Promise<void> {
-    await this.docker.getContainer(containerId).start();
+    try {
+      await this.docker.getContainer(containerId).start();
+    } catch (err) {
+      if (!isDockerStatus(err, 304)) throw err; // 304 = already running
+    }
   }
 
   // 90s, not Docker's 10s default: Paper's own shutdown sequence (chunk
@@ -215,7 +240,9 @@ export class DockerMinecraftRuntime {
     try {
       await this.docker.getContainer(containerId).stop({ t: timeoutSeconds });
     } catch (err) {
-      if (!isDockerStatus(err, 304)) throw err; // 304 = already stopped
+      // 304 = already stopped, 404 = already gone (removed out-of-band) —
+      // either way the goal "not running" is already met.
+      if (!isDockerStatus(err, 304) && !isDockerStatus(err, 404)) throw err;
     }
   }
 
@@ -264,6 +291,78 @@ export class DockerMinecraftRuntime {
       since: options.since,
       timestamps: false,
     }) as unknown as Promise<Readable>;
+  }
+
+  async readLogs(containerId: string, options: { tail?: number; since?: number } = {}): Promise<string> {
+    try {
+      const raw = (await this.docker.getContainer(containerId).logs({
+        follow: false,
+        stdout: true,
+        stderr: true,
+        tail: options.tail ?? 500,
+        since: options.since,
+        timestamps: false,
+      })) as unknown as Buffer;
+      return raw.toString("utf8");
+    } catch (err) {
+      if (isDockerStatus(err, 404)) return "";
+      throw err;
+    }
+  }
+
+  /**
+   * Runs a one-off `java ...` in a throwaway container on the server's own
+   * data dir and runtime image — used for Forge/NeoForge, whose installers
+   * are real programs that patch and download the actual server files
+   * rather than a single jar the panel could fetch itself. Same lockdown as
+   * the long-lived server container (non-root, no capabilities, resource
+   * limits); unlike it, it does need outbound network access, since the
+   * installer downloads libraries and the vanilla server jar itself.
+   * Always removed afterwards, success or not.
+   */
+  async runInstaller(options: RunInstallerOptions): Promise<InstallerRunResult> {
+    await this.ensureNetwork();
+    await this.ensureImage(options.javaImageTag);
+    // A leftover from an earlier attempt that was interrupted mid-install
+    // would otherwise make the create below fail with a name conflict.
+    await this.remove(options.containerName, true);
+
+    const container = await this.docker.createContainer({
+      name: options.containerName,
+      Image: options.javaImageTag,
+      Entrypoint: ["java"],
+      Cmd: options.javaArgs,
+      WorkingDir: "/data",
+      Env: [`TZ=${env.TZ}`],
+      Tty: true, // raw, non-multiplexed log output
+      HostConfig: {
+        Memory: options.memoryMb * 1024 * 1024,
+        MemorySwap: options.memoryMb * 1024 * 1024,
+        PidsLimit: 2048,
+        Binds: [`${await this.hostDataDirFor(options.serverId)}:/data`],
+        CapDrop: ["ALL"],
+        SecurityOpt: ["no-new-privileges:true"],
+        LogConfig: { Type: "json-file", Config: { "max-size": "10m", "max-file": "1" } },
+      },
+      NetworkingConfig: { EndpointsConfig: { [env.MINECRAFT_NETWORK]: {} } },
+      Labels: { "minecraftpanel.serverId": options.serverId, "minecraftpanel.role": "installer" },
+    });
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await container.start();
+      const exited = container.wait() as Promise<{ StatusCode: number }>;
+      exited.catch(() => {}); // still pending if the timeout wins below — the force-remove then rejects it
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`Installer did not finish within ${Math.round(options.timeoutMs / 60_000)} minutes.`)), options.timeoutMs);
+      });
+      const result = await Promise.race([exited, timeout]);
+      const output = await this.readLogs(container.id, { tail: 200 });
+      return { exitCode: result.StatusCode, output };
+    } finally {
+      clearTimeout(timer);
+      await container.remove({ force: true }).catch((err) => logger.warn({ err, serverId: options.serverId }, "Failed to remove installer container"));
+    }
   }
 
   getContainer(containerId: string): Docker.Container {

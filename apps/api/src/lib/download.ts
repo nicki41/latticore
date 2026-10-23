@@ -33,8 +33,8 @@ export async function downloadAndVerify(
   hashes: DownloadHashes = {},
   timeoutMs = 120_000,
 ): Promise<Buffer> {
-  assertTrustedDownloadUrl(url, allowedHosts);
-  const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+  const signal = AbortSignal.timeout(timeoutMs);
+  const res = await fetchFollowingTrustedRedirects(url, allowedHosts, signal);
   if (!res.ok) throw new BadRequestError(`Failed to download file: ${res.status} ${res.statusText}`);
   const buffer = Buffer.from(await res.arrayBuffer());
 
@@ -47,6 +47,24 @@ export async function downloadAndVerify(
   }
 
   return buffer;
+}
+
+const MAX_REDIRECTS = 5;
+
+/**
+ * fetch() follows redirects to ANY host by default, which would make the
+ * allowlist above a check on the first hop only. Follow them by hand
+ * instead, re-checking every hop against the same allowlist.
+ */
+async function fetchFollowingTrustedRedirects(url: string, allowedHosts: ReadonlySet<string>, signal: AbortSignal): Promise<Response> {
+  let current = assertTrustedDownloadUrl(url, allowedHosts);
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const res = await fetch(current.toString(), { redirect: "manual", signal });
+    const location = res.status >= 300 && res.status < 400 ? res.headers.get("location") : null;
+    if (!location) return res;
+    current = assertTrustedDownloadUrl(new URL(location, current).toString(), allowedHosts);
+  }
+  throw new BadRequestError("Too many redirects while downloading file.");
 }
 
 function verifyHash(buffer: Buffer, algorithm: "sha1" | "sha256" | "sha512", expected: string): void {

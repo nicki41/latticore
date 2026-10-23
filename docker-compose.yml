@@ -11,6 +11,9 @@ services:
       NODE_ENV: production
       PORT: 3000
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      # Scheduler workflows run on this clock; it's also passed to every
+      # Minecraft container. See .env.example.
+      TZ: ${TZ:-UTC}
       # SQLite file lives inside the /data bind mount below, so it's a
       # single self-contained deployment — no separate DB container or
       # credentials to configure. Not overridable via .env on purpose: the
@@ -18,6 +21,7 @@ services:
       DATABASE_URL: file:/data/db.sqlite
       SESSION_SECRET: ${SESSION_SECRET}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      TRUST_PROXY: ${TRUST_PROXY:-loopback,linklocal,uniquelocal}
       DOCKER_SOCKET_PATH: /var/run/docker.sock
       # Not set here: HOST_DATA_PATH is auto-detected at runtime by
       # self-inspecting this container's own mounts over the Docker socket
@@ -33,6 +37,10 @@ services:
       MC_PORT_RANGE_MAX: ${MC_PORT_RANGE_MAX:-25664}
       MODRINTH_API_URL: ${MODRINTH_API_URL:-https://api.modrinth.com/v2}
       MODRINTH_USER_AGENT: ${MODRINTH_USER_AGENT:-minecraftpanel/0.1.0}
+      # Optional — auto-generated and persisted on first boot when left empty.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
     # Published directly on the host by default — this is all that's
     # needed to reach the panel at http://<host>:3000. Already behind a
     # reverse proxy (nginx-proxy-manager, Caddy, Traefik, ...)? Comment

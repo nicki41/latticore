@@ -15,7 +15,7 @@ vi.mock("../../config/env.js", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATA_PATH__: string;
 }
 
@@ -23,7 +23,7 @@ function makeServer(overrides: Partial<Server> = {}): Server {
   return {
     id: "srv-1",
     dataDir: "server1",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     ...overrides,
   } as any as Server;
 }
@@ -33,7 +33,7 @@ function makeFakePrisma(profileUuid: string | null = null) {
     playerProfile: {
       findUnique: vi.fn(async () => (profileUuid ? { uuid: profileUuid } : null)),
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } as any;
 }
 

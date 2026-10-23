@@ -18,7 +18,7 @@ export default function ServerOverviewPage() {
   const [range, setRange] = useState<MetricsRange>("1h");
   const history = useMetricsHistory(server.id, range);
 
-  const samples = history.data?.samples ?? [];
+  const samples = useMemo(() => history.data?.samples ?? [], [history.data]);
   const series = useMemo(() => {
     const map = <T,>(pick: (s: (typeof samples)[number]) => T | null): { timestamp: number; value: T | null }[] =>
       samples.map((s) => ({ timestamp: s.timestamp, value: pick(s) }));

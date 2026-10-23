@@ -18,7 +18,7 @@ vi.mock("../../config/env.js", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __TEST_DATA_PATH__: string;
 }
 
@@ -59,7 +59,7 @@ function makeFakePrisma() {
         }
         return { count: before - rows.length };
       }),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
     } as any,
   };
 }

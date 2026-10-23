@@ -47,6 +47,19 @@ export default fp(async (fastify: FastifyInstance) => {
     request.user = token ? await fastify.authService.getUserFromToken(token) : null;
   });
 
+  // Expired sessions are already rejected on use; this only keeps the table
+  // from growing forever with rows nobody can use anymore.
+  const pruneExpiredSessions = () =>
+    fastify.prisma.session
+      .deleteMany({ where: { expiresAt: { lt: new Date() } } })
+      .catch((err) => fastify.log.warn({ err }, "Failed to prune expired sessions"));
+  const pruneTimer = setInterval(pruneExpiredSessions, 60 * 60 * 1000);
+  pruneTimer.unref?.();
+  fastify.addHook("onReady", async () => {
+    await pruneExpiredSessions();
+  });
+  fastify.addHook("onClose", async () => clearInterval(pruneTimer));
+
   fastify.decorate("requireAuth", async (request: FastifyRequest) => {
     if (!request.user) throw new UnauthenticatedError();
   });

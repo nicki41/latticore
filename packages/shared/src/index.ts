@@ -23,3 +23,4 @@ export * from "./schemas/roles.js";
 export * from "./schemas/backups.js";
 export * from "./schemas/scheduler.js";
 export * from "./schemas/notifications.js";
+export * from "./mcVersion.js";

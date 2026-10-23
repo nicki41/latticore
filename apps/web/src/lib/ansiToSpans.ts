@@ -16,6 +16,7 @@ export interface AnsiSpan {
 // Matches any CSI sequence (ESC [ params letter), not just SGR's "m" —
 // non-SGR ones (e.g. a stray cursor/mode-toggle code) are silently consumed
 // rather than leaking into the rendered text as literal garbage.
+// eslint-disable-next-line no-control-regex -- matching the ESC control character is the whole point
 const CSI_PATTERN = /\x1b\[([0-9;?]*)([a-zA-Z])/g;
 
 const FOREGROUND_CLASS: Record<number, string> = {

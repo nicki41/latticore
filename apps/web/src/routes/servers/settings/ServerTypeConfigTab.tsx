@@ -108,7 +108,7 @@ export function ConfigFileCard({
       setTouched(new Set());
     }
     // Only re-sync when a fresh server response arrives, not on every local edit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [query.data]);
 
   function setField(key: string, value: ConfigValue) {

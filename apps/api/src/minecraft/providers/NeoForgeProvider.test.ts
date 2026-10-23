@@ -11,12 +11,19 @@ describe("neoForgeVersionToMcVersion", () => {
     expect(neoForgeVersionToMcVersion("21.0.12")).toBe("1.21");
   });
 
-  it("handles extra segments and prerelease suffixes after the major.minor prefix", () => {
-    expect(neoForgeVersionToMcVersion("26.1.0.0-alpha.1+snapshot-1")).toBe("1.26.1");
+  it("maps year-based versions (Minecraft 26.1+) to <year>.<drop>[.<hotfix>], not 1.x", () => {
+    expect(neoForgeVersionToMcVersion("26.3.0.95")).toBe("26.3");
+    expect(neoForgeVersionToMcVersion("26.1.2.122")).toBe("26.1.2");
+    expect(neoForgeVersionToMcVersion("26.1.0.0-alpha.1+snapshot-1")).toBe("26.1");
   });
 
-  it("returns null for garbage input", () => {
+  it("handles prerelease suffixes on the 1.x scheme", () => {
+    expect(neoForgeVersionToMcVersion("20.2.3-beta")).toBe("1.20.2");
+  });
+
+  it("returns null for garbage input and builds with no real Minecraft release behind them", () => {
     expect(neoForgeVersionToMcVersion("not-a-version")).toBeNull();
+    expect(neoForgeVersionToMcVersion("0.25w14craftmine.3-beta")).toBeNull();
   });
 });
 

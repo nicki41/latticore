@@ -19,13 +19,13 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api";
 import { useCreateWorkflow, useUpdateWorkflow, useCronPreview } from "@/lib/scheduler";
+import { formatInZone } from "@/lib/system";
 import {
   buildDailyCron,
   buildEveryNHoursCron,
   buildTimesPerDayCron,
   buildWeeklyCron,
   parseTime,
-  formatTime,
   WEEKDAY_LABELS,
 } from "@/lib/cronTemplates";
 
@@ -419,7 +419,8 @@ export function WorkflowEditorDialog({
               <p className={cn("font-medium", !description && "text-destructive")}>{description ?? "Invalid cron expression."}</p>
               {preview.data?.valid && preview.data.nextRuns.length > 0 && (
                 <p className="mt-1 text-muted-foreground">
-                  Next: {preview.data.nextRuns.map((r) => new Date(r).toLocaleString()).join(" · ")}
+                  Next: {preview.data.nextRuns.map((r) => formatInZone(r, preview.data!.timezone)).join(" · ")}
+                  <span className="block">Times are in the server's time zone ({preview.data.timezone}).</span>
                 </p>
               )}
               {preview.data && !preview.data.valid && preview.data.error && (

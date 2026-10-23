@@ -194,6 +194,9 @@ model Server {
   /// accidentally accepts the EULA on the user's behalf.
   eulaAccepted Boolean @default(false)
 
+  /// Keep only this many unlocked backups — the oldest are deleted after each new one (see BackupService.enforceRetention). Null keeps every backup.
+  backupRetentionCount Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -390,6 +393,8 @@ model Backup {
   fileName  String
   sizeBytes BigInt
   note      String?
+  /// Locked backups are skipped by retention and can't be deleted until unlocked.
+  locked    Boolean  @default(false)
   createdById String?
   createdAt DateTime @default(now())
 

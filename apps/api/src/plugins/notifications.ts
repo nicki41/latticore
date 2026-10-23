@@ -21,9 +21,7 @@ declare module "fastify" {
  * be registered after the minecraft/metricsHistory/playerActivity plugins
  * (app.ts does this by registration order, same convention as every other
  * plugin dependency in this app — none of them declare fastify-plugin's
- * `dependencies` option). The backup category is dispatched directly from
- * backups.routes.ts instead (it's a request-triggered action, not a
- * background event source).
+ * `dependencies` option).
  */
 export default fp(async (fastify: FastifyInstance) => {
   const vapidKeys = await resolveVapidKeys(fastify.prisma);
@@ -36,6 +34,18 @@ export default fp(async (fastify: FastifyInstance) => {
     void handleStatusChange(fastify, dispatcher, serverId, status).catch((err) =>
       logger.debug({ err, serverId, status }, "Failed to dispatch server-status notification"),
     );
+  });
+
+  // Both manual and scheduled backups — BackupService is shared (plugins/backups.ts).
+  fastify.backupService.on("created", (server, backup) => {
+    void dispatcher
+      .dispatch({ serverId: server.id, category: "backup", title: `${server.name}: backup completed`, body: `Backup ${backup.fileName} was created.` })
+      .catch((err) => logger.debug({ err, serverId: server.id }, "Failed to dispatch backup notification"));
+  });
+  fastify.backupService.on("failed", (server) => {
+    void dispatcher
+      .dispatch({ serverId: server.id, category: "backup", title: `${server.name}: backup failed`, body: "The backup could not be created." })
+      .catch((err) => logger.debug({ err, serverId: server.id }, "Failed to dispatch backup notification"));
   });
 
   fastify.playerActivityTracker.on("playerJoin", (serverId: string, username: string) => {
