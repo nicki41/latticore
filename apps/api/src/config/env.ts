@@ -87,7 +87,7 @@ const envSchema = z
     MC_PORT_RANGE_MAX: z.coerce.number().int().min(1).max(65535).default(25664),
 
     MODRINTH_API_URL: z.string().url().default("https://api.modrinth.com/v2"),
-    MODRINTH_USER_AGENT: z.string().default("minecraftpanel/0.1.0"),
+    MODRINTH_USER_AGENT: z.string().default("latticore/0.1.0 (github.com/nicki41/minecontroller)"),
 
     // Optional on purpose: web push is a layered-on feature, not a hard
     // dependency — with these unset, webPushSender logs a warning once and

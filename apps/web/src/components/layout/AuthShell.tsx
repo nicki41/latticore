@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Logo } from "./Logo";
+import { Logo, Wordmark } from "./Logo";
 
 interface AuthShellProps {
   title: string;
@@ -13,10 +13,8 @@ export function AuthShell({ title, description, children, footer }: AuthShellPro
     <div className="flex min-h-dvh items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <Logo className="h-10 w-10" />
-          <span className="text-sm font-semibold tracking-tight text-muted-foreground">
-            mine<span className="font-bold text-primary">controller</span>
-          </span>
+          <Logo variant="lattice" className="h-12 w-12" />
+          <Wordmark className="text-base font-extrabold tracking-tight" />
         </div>
 
         <Card className="animate-slide-up">

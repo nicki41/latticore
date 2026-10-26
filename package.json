@@ -1,8 +1,8 @@
 {
-  "name": "minecontroller",
+  "name": "latticore",
   "private": true,
   "version": "0.1.0",
-  "description": "Self-hosted Minecraft server management panel",
+  "description": "Self-hosted panel for Minecraft servers and proxy networks",
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",

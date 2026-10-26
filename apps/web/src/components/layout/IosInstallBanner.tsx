@@ -37,7 +37,7 @@ export function IosInstallBanner() {
     <div className="flex items-center gap-3 border-b border-border bg-primary/10 px-4 py-2 text-sm">
       <Share className="h-4 w-4 shrink-0 text-primary" />
       <p className="min-w-0 flex-1 text-foreground">
-        Add minecontroller to your Home Screen for the full app experience and push notifications: tap{" "}
+        Add Latticore to your Home Screen for the full app experience and push notifications: tap{" "}
         <Share className="inline h-3.5 w-3.5 -translate-y-px" aria-hidden="true" /> Share, then{" "}
         <span className="font-medium">Add to Home Screen</span>.
       </p>

@@ -1,6 +1,6 @@
 # Architecture
 
-This document explains how minecontroller's pieces fit together: the container layout, how a new Minecraft server gets created, and how access control is enforced. For hands-on setup, see the [main README](../README.md); for the full environment variable reference, see [configuration.md](configuration.md).
+This document explains how Latticore's pieces fit together: the container layout, how a new Minecraft server gets created, and how access control is enforced. For hands-on setup, see the [main README](../README.md); for the full environment variable reference, see [configuration.md](configuration.md).
 
 ## Table of contents
 

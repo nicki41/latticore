@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution to minecontroller.
+Thanks for considering a contribution to Latticore.
 
 ## Development setup
 

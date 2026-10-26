@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>minecontroller</title>
-    <meta name="description" content="Self-hosted management panel for multiple Minecraft servers." />
+    <title>Latticore</title>
+    <meta name="description" content="Self-hosted panel for Minecraft servers and proxy networks." />
 
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#15151a" />
@@ -13,7 +13,7 @@
          fields for "Add to Home Screen" and needs these instead. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="minecontroller" />
+    <meta name="apple-mobile-web-app-title" content="Latticore" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
 
     <!-- Apple splash screens (shown full-screen while the standalone app
@@ -37,7 +37,7 @@
     <link
       rel="icon"
       type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,0 100,27 50,54 0,27' fill='%23e8a4c4'/%3E%3Cpolygon points='0,27 50,54 50,100 0,73' fill='%232a2a30'/%3E%3Cpolygon points='100,27 50,54 50,100 100,73' fill='%23d6598f'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='8 6 48 52'%3E%3Cpath d='M32 8 L53 20 L32 32 L11 20 Z' fill='%23F5B6D2'/%3E%3Cpath d='M11 20 L32 32 L32 56 L11 44 Z' fill='%23B8286E'/%3E%3Cpath d='M53 20 L32 32 L32 56 L53 44 Z' fill='%23E26AA0'/%3E%3C/svg%3E"
     />
   </head>
   <body class="bg-background text-foreground antialiased">
@@ -51,10 +51,15 @@
       it (with a fade) once React has mounted.
     -->
     <div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#15151a;transition:opacity 200ms ease-out">
-      <svg viewBox="0 0 100 100" width="64" height="64" role="img" aria-label="minecontroller">
-        <polygon points="50,0 100,27 50,54 0,27" fill="#e8a4c4" />
-        <polygon points="0,27 50,54 50,100 0,73" fill="#2a2a30" />
-        <polygon points="100,27 50,54 50,100 100,73" fill="#d6598f" />
+      <svg viewBox="0 0 64 64" width="72" height="72" role="img" aria-label="Latticore">
+        <g stroke="#F5B6D2" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" fill="none">
+          <path d="M32 8 L53 20 L53 44 L32 56 L11 44 L11 20 Z" />
+          <path d="M11 20 L32 32 L53 20 M32 32 L32 56" />
+        </g>
+        <g fill="#E26AA0">
+          <circle cx="32" cy="8" r="5" /><circle cx="53" cy="20" r="5" /><circle cx="53" cy="44" r="5" /><circle cx="32" cy="56" r="5" />
+          <circle cx="11" cy="44" r="5" /><circle cx="11" cy="20" r="5" /><circle cx="32" cy="32" r="5" />
+        </g>
       </svg>
     </div>
 

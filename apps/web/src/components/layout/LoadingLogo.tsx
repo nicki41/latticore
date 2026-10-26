@@ -1,12 +1,11 @@
 /**
- * Branded loading animation: the gem-mark cube (see Logo.tsx) builds face by
- * face while the "mine"/"controller" wordmark flies in and a progress bar
+ * Branded loading animation: the compact cube mark (see Logo.tsx) builds face
+ * by face while the "latti"/"core" wordmark flies in and a progress bar
  * fills, then the whole lockup fades out. Everything is a pure function of
  * `progress` (0..1) — callers drive that from real load state (see
  * AppLoadingOverlay / RequireAuth via useTrickleProgress), not a timer.
  *
- * Ported from the Claude Design prototype (minecontroller-loader-scene.jsx),
- * adapted to this app's actual "minecontroller" wordmark and dark-only palette.
+ * Recolored to Latticore's palette (Petal / Rose / Bloom faces).
  */
 const easeOutQuad = (t: number) => 1 - (1 - t) ** 2;
 const easeOutQuart = (t: number) => 1 - (1 - t) ** 4;
@@ -20,9 +19,9 @@ function mapRange(progress: number, from: number, to: number, ease: (t: number) 
 function mk(base: string, variants: string[]) {
   return Array.from({ length: 16 }, (_, i) => variants[(i * 7 + (i % 4)) % variants.length] || base);
 }
-const TOP = mk("#e8a4c4", ["#e8a4c4", "#f0bcd3", "#e090ba", "#f4c9dc"]);
-const RIGHT = mk("#d6598f", ["#d6598f", "#c23f79", "#e070a0", "#b8386c"]);
-const LEFT = mk("#2a2a30", ["#2a2a30", "#343440", "#242429", "#3a3a42"]);
+const TOP = mk("#F5B6D2", ["#F5B6D2", "#F9C8DE", "#EFA6C6", "#FBD3E5"]);
+const RIGHT = mk("#E26AA0", ["#E26AA0", "#D85A93", "#EA7FAE", "#CF4F89"]);
+const LEFT = mk("#B8286E", ["#B8286E", "#A82063", "#C33A7B", "#9C1D5C"]);
 
 function Face({ clip, cells, opacity }: { clip: string; cells: string[]; opacity: number }) {
   return (
@@ -70,11 +69,11 @@ export function LoadingLogo({ progress }: { progress: number }) {
     <div className="flex flex-col items-center justify-center gap-8">
       <Cube size={112} opacity={lockupOpacity} scale={cubeScale} faceStagger={faceStagger} />
       <div className="flex items-baseline gap-0 overflow-visible text-3xl" style={{ letterSpacing: "-0.01em" }}>
-        <span className="text-muted-foreground" style={{ opacity: mineOpacity, transform: `translateY(${mineY}px)` }}>
-          mine
+        <span className="font-extrabold tracking-tight text-foreground" style={{ opacity: mineOpacity, transform: `translateY(${mineY}px)` }}>
+          latti
         </span>
-        <span className="font-bold text-primary" style={{ opacity: panelOpacity, transform: `translateX(${panelOffset}px)` }}>
-          controller
+        <span className="font-extrabold tracking-tight text-primary" style={{ opacity: panelOpacity, transform: `translateX(${panelOffset}px)` }}>
+          core
         </span>
       </div>
       <div className="h-[3px] w-56 overflow-hidden rounded-full bg-secondary" style={{ opacity: lockupOpacity }}>

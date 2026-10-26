@@ -79,7 +79,7 @@ Removing a server from the network, or deleting the proxy, returns every affecte
 
 The frontend ships a web app manifest and service worker (`apps/web/public/manifest.json` / `sw.js`), so any modern browser can install it as a standalone app instead of just bookmarking a tab — icon, splash screen, its own window, no browser chrome.
 
-- **Android / desktop Chrome or Edge**: an install icon appears in the address bar, or use the browser menu → "Install minecontroller".
+- **Android / desktop Chrome or Edge**: an install icon appears in the address bar, or use the browser menu → "Install Latticore".
 - **iOS 16.4+ / iPadOS Safari**: Share → **Add to Home Screen**. Web push notifications only work from this installed instance on iOS, not from Safari itself — see [configuration.md#web-push-notifications](configuration.md#web-push-notifications).
 
 The service worker caches static assets (JS/CSS/icons) cache-first for snappier repeat loads, but always goes straight to the network for `/api/*` and `/ws/*` and for the page navigation itself — there is no offline mode for actual panel data, only a faster shell load. A new deployment is picked up automatically on next launch (old caches are dropped on activate); no manual "clear cache" step is needed after an update.
