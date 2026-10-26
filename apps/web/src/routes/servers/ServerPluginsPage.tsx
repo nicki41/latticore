@@ -9,8 +9,9 @@ import { ModrinthResultCard } from "@/components/modrinth/ModrinthResultCard";
 import { ModrinthFilterBar } from "@/components/modrinth/ModrinthFilterBar";
 import { ModrinthPagination } from "@/components/modrinth/ModrinthPagination";
 import { InstalledPluginsList } from "@/components/modrinth/InstalledPluginsList";
+import { FeaturedCollectionCard } from "@/components/modrinth/FeaturedCollectionCard";
 import { Badge } from "@/components/ui/badge";
-import { useInstalledPlugins, useModrinthSearch, useQuickInstallPlugin } from "@/lib/modrinth";
+import { useFeaturedCollection, useInstalledPlugins, useModrinthSearch, useQuickInstallPlugin } from "@/lib/modrinth";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 import { useServerOutletContext } from "./useServerOutletContext";
@@ -54,6 +55,12 @@ export default function ServerPluginsPage() {
     () => new Set((installed.data?.installed ?? []).map((p) => p.modrinthProjectId).filter((id): id is string => Boolean(id))),
     [installed.data],
   );
+  const featured = useFeaturedCollection().data?.featured;
+  // Only what this server can actually load — the promo box disappears entirely for e.g. a Fabric server.
+  const compatibleFeatured = useMemo(
+    () => (featured && serverLoader ? featured.projects.filter((p) => p.loaders.includes(serverLoader)) : []),
+    [featured, serverLoader],
+  );
   const total = search.data?.total_hits ?? 0;
 
   if (kind === "none") {
@@ -92,6 +99,19 @@ export default function ServerPluginsPage() {
           <InstalledPluginsList server={server} installed={installed.data?.installed ?? []} isLoading={installed.isLoading} />
         </CardContent>
       </Card>
+
+      {featured && (
+        <FeaturedCollectionCard
+          featured={featured}
+          projects={compatibleFeatured}
+          install={{
+            installedProjectIds,
+            installingProjectId,
+            canInstall: hasPermission("plugins.install"),
+            onInstall: (project) => handleInstall(project.id, project.title, project.slug, featured.author ?? ""),
+          }}
+        />
+      )}
 
       <div className="space-y-4">
         <div>

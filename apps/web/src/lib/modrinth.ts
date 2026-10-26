@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  FeaturedCollectionDto,
   InstalledPluginDto,
   InstallModrinthVersionInput,
   ModrinthGameVersion,
@@ -133,5 +134,14 @@ export function useResumePlugin(serverId: string) {
   return useMutation({
     mutationFn: (filename: string) => api.post<{ filename: string }>(`/servers/${serverId}/plugins/${encodeURIComponent(filename)}/resume`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["servers", serverId, "plugins"] }),
+  });
+}
+
+/** The collection promoted at the top of the Modrinth and Plugins pages (null when Modrinth is unreachable). */
+export function useFeaturedCollection() {
+  return useQuery({
+    queryKey: ["modrinth", "featured"],
+    queryFn: () => api.get<{ featured: FeaturedCollectionDto | null }>("/modrinth/featured"),
+    staleTime: 30 * 60 * 1000,
   });
 }

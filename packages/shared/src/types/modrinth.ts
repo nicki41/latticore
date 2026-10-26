@@ -81,3 +81,39 @@ export interface InstalledPluginDto {
   iconUrl: string | null;
   slug: string | null;
 }
+
+/** Modrinth v3 collection (a user-curated list of projects). */
+export interface ModrinthCollection {
+  id: string;
+  name: string;
+  description: string | null;
+  icon_url: string | null;
+  status: string;
+  /** Owner's user id. */
+  user: string;
+  projects: string[];
+}
+
+/** A collection the panel features on its Modrinth pages — see modrinth.featured.ts. */
+export interface FeaturedCollectionDto {
+  id: string;
+  name: string;
+  description: string | null;
+  iconUrl: string | null;
+  /** Public Modrinth page of the collection. */
+  url: string;
+  /** Collection owner's Modrinth username, recorded as the author of anything installed from it. */
+  author: string | null;
+  projects: FeaturedProjectDto[];
+}
+
+export interface FeaturedProjectDto {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  iconUrl: string | null;
+  downloads: number;
+  loaders: string[];
+  gameVersions: string[];
+}

@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { ModrinthClient } from "./modrinth.client.js";
+import { createFeaturedCollectionLoader } from "./modrinth.featured.js";
 
 const client = new ModrinthClient();
+const loadFeatured = createFeaturedCollectionLoader(client);
 
 const csvList = z
   .string()
@@ -47,6 +49,11 @@ export async function modrinthRoutes(fastify: FastifyInstance) {
     const params = versionsQuerySchema.parse(request.query);
     const versions = await client.getProjectVersions(idOrSlug, params);
     return reply.send({ versions });
+  });
+
+  /** The promoted collection shown at the top of the Modrinth and Plugins pages; `featured` is null if Modrinth couldn't be reached. */
+  fastify.get("/featured", { preHandler: fastify.requireAuth }, async (_request, reply) => {
+    return reply.send({ featured: await loadFeatured() });
   });
 
   fastify.get("/game-versions", { preHandler: fastify.requireAuth }, async (_request, reply) => {
