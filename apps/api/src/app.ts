@@ -152,7 +152,12 @@ export async function buildApp() {
       };
       return reply.status(404).send(body);
     }
-    if (webDistExists && request.method === "GET") {
+    // SPA fallback for client-side routes only. A missing *file* (e.g. a JS
+    // chunk an open tab still references after an update) gets a real 404 —
+    // answering it with index.html makes the browser fail with a confusing
+    // MIME-type error instead.
+    const pathname = url.split("?")[0] ?? "";
+    if (webDistExists && request.method === "GET" && !/\.[a-z0-9]+$/i.test(pathname)) {
       return reply.sendFile("index.html");
     }
     const body: ApiErrorBody = { error: { code: "NOT_FOUND", message: "Not found" } };
