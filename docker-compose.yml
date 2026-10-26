@@ -28,7 +28,7 @@ services:
       # (see apps/api/src/config/hostDataPath.ts). Only add it below if
       # that detection doesn't work for your setup (rootless Docker,
       # Podman, ...) — see docs/configuration.md.
-      # HOST_DATA_PATH: /absolute/path/to/minecontroller/data
+      # HOST_DATA_PATH: /absolute/path/to/latticore/data
       DATA_PATH: /data
       MINECRAFT_IMAGE: ${MINECRAFT_IMAGE:-itzg/minecraft-server:latest}
       RUNTIME_IMAGE_BASE: ${RUNTIME_IMAGE_BASE:-ghcr.io/nicki41/minecontroller-runtime}
@@ -36,7 +36,7 @@ services:
       MC_PORT_RANGE_MIN: ${MC_PORT_RANGE_MIN:-25565}
       MC_PORT_RANGE_MAX: ${MC_PORT_RANGE_MAX:-25664}
       MODRINTH_API_URL: ${MODRINTH_API_URL:-https://api.modrinth.com/v2}
-      MODRINTH_USER_AGENT: ${MODRINTH_USER_AGENT:-minecraftpanel/0.1.0}
+      MODRINTH_USER_AGENT: ${MODRINTH_USER_AGENT:-latticore/0.1.0 (github.com/nicki41/minecontroller)}
       # Optional — auto-generated and persisted on first boot when left empty.
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}

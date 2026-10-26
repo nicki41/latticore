@@ -1,6 +1,6 @@
 # Features
 
-A tour of everything minecontroller does, with screenshots. For setup, see the [main README](../README.md); for the technical reasoning behind any of this, see [architecture.md](architecture.md).
+A tour of everything Latticore does, with screenshots. For setup, see the [main README](../README.md); for the technical reasoning behind any of this, see [architecture.md](architecture.md).
 
 All screenshots below are from a local demo instance seeded with placeholder data (`demo@example.com`, example usernames, an RFC 5737 documentation IP) — not a real deployment.
 

@@ -1,6 +1,6 @@
 # Roadmap
 
-Where the panel is headed: from a single-host Minecraft panel to **Roost** — a modern, self-hosted game server panel for homelabs and communities, with **deeply integrated games, any number of machines, and plugins and themes for the panel itself** — without losing what it does well today (one `docker compose up -d`, a fast and polished UI, real security defaults).
+Where the panel is headed: from a single-host Minecraft panel to **Latticore** — a modern, self-hosted game server panel for homelabs and communities, with **deeply integrated games, any number of machines, and plugins and themes for the panel itself** — without losing what it does well today (one `docker compose up -d`, a fast and polished UI, real security defaults).
 
 Phases are ordered by dependency; each one ships on its own.
 
@@ -8,7 +8,7 @@ Phases are ordered by dependency; each one ships on its own.
 
 | Topic | Decision |
 |---|---|
-| Name & brand | **Roost** — the "roost" wordmark with the node-cube mark and the pink palette from the Lattice concept (design board: *Panel Rebrand – Name & Logo*) |
+| Name & brand | **Latticore** — the node-cube mark and pink palette (design board: *Panel Rebrand – Name & Logo*); name checked free on GitHub and npm |
 | Audience | **Homelab & communities first.** One admin or a small team on their own hardware; hosting-provider features (quotas, billing, hard multi-tenancy) are not a goal for now |
 | Games | **Built-in, first-class game integrations** — not a generic template/egg system like Pterodactyl. Every game is picked from a curated list and gets its own features (Minecraft: player manager, Modrinth, server.properties editor, …) |
 | Multiple machines | **Own lightweight agent** per machine; the panel's host is automatically node 1 |
@@ -26,9 +26,11 @@ Phases are ordered by dependency; each one ships on its own.
 
 Robust lifecycle (no stuck statuses, boot recovery), Forge/NeoForge, reinstall/version switch, consistent backups with retention and locking, timezone-aware scheduler, security headers, proxy-aware rate limiting, dependency hygiene, ESLint in CI.
 
-## Phase 1 — Rebrand to Roost
+## Phase 1 — Rebrand to Latticore, proxy networks (done)
 
-Name, logo, favicon/PWA icons, splash, manifest, docs; Docker image and repository names, with the old image names kept publishing for a transition period so existing installs keep updating.
+- Name, logo, favicon/PWA icons, splash, manifest and docs are Latticore. Still open: renaming the GitHub repository and the Docker image names — with the old image names kept publishing for a transition period so existing installs keep updating.
+- Velocity and BungeeCord as server types, with one-click networks (forwarding, secret, online-mode and port hiding done automatically) and a Networks overview.
+- UniversalAdmin recommended on the Modrinth and Plugins pages.
 
 ## Phase 2 — Game integrations (multi-game)
 

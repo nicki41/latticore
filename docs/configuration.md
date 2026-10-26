@@ -32,7 +32,7 @@ The api container mounts `./data` at `/data` and works internally with that path
 ```mermaid
 flowchart LR
     subgraph Host["Docker host filesystem"]
-        HD["/home/you/minecontroller/data<br/>(HOST_DATA_PATH)"]
+        HD["/home/you/latticore/data<br/>(HOST_DATA_PATH)"]
     end
 
     subgraph APIC["api container"]
@@ -53,9 +53,9 @@ This only fails to auto-detect in non-standard setups — rootless Docker, Podma
 
 ```
 # Linux/macOS:
-HOST_DATA_PATH=/home/youruser/minecontroller/data
+HOST_DATA_PATH=/home/youruser/latticore/data
 # Windows + Docker Desktop:
-HOST_DATA_PATH=//c/Users/you/minecontroller/data
+HOST_DATA_PATH=//c/Users/you/latticore/data
 ```
 
 Either way, you can confirm it worked by inspecting a newly created server's container with `docker inspect <container>` and checking its `Binds` entry points at a host path that actually exists.

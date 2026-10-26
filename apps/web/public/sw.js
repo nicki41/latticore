@@ -9,7 +9,7 @@
 // assets, and must always go straight to the network per the panel's own
 // requirement.
 
-const CACHE_NAME = "minecontroller-static-v1";
+const CACHE_NAME = "latticore-static-v1";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

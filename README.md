@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" width="96" height="96" alt="minecontroller logo">
+  <img src="docs/assets/logo.svg" width="96" height="96" alt="Latticore logo">
 </p>
 
-<h1 align="center">minecontroller</h1>
+<h1 align="center">Latticore</h1>
 
 <p align="center">
   <a href="https://github.com/nicki41/minecontroller/actions/workflows/ci.yml"><img src="https://github.com/nicki41/minecontroller/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -12,6 +12,8 @@
 </p>
 
 A self-hosted panel for Minecraft servers and the proxy networks that tie them together. Each server runs in its own Docker container — installed and launched by the panel itself, on minimal Java-only runtime images it publishes ([`runtime-images/`](runtime-images/)), not a third-party all-in-one image — managed through a Fastify/TypeScript API with an embedded SQLite database and a React UI. One container, no separate database service, no build step — every image is pulled pre-built from GitHub Container Registry, so `docker compose up -d` really is all it takes.
+
+> **Latticore was called *minecontroller* until October 2026.** The GitHub repository and the published Docker image names still use the old name for now, so existing installs keep updating — nothing to change on your side.
 
 ![Dashboard with three servers](docs/assets/screenshots/dashboard.png)
 
@@ -99,7 +101,7 @@ Full breakdown — component diagram, server-creation flow, RBAC model, and the 
 Two files, downloaded directly — no repository checkout needed:
 
 ```bash
-mkdir minecontroller && cd minecontroller
+mkdir latticore && cd latticore
 curl -fsSLO https://raw.githubusercontent.com/nicki41/minecontroller/master/docker-compose.yml
 curl -fsSLo .env https://raw.githubusercontent.com/nicki41/minecontroller/master/.env.example
 ```

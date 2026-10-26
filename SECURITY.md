@@ -1,6 +1,6 @@
 # Security policy
 
-minecontroller grants whoever runs it Docker-socket access on the host (needed to manage Minecraft server containers) — see [docs/security.md](docs/security.md) for the full threat model and hardening measures.
+Latticore grants whoever runs it Docker-socket access on the host (needed to manage Minecraft server containers) — see [docs/security.md](docs/security.md) for the full threat model and hardening measures.
 
 ## Reporting a vulnerability
 

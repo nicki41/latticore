@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useServers } from "@/lib/servers";
 import { StatusDot } from "@/components/servers/StatusBadge";
-import { Logo } from "./Logo";
+import { Logo, Wordmark } from "./Logo";
 
 type ServerNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 
@@ -199,9 +199,7 @@ export function Sidebar({ collapsed = false, mobileOpen = false, onCloseMobile }
       >
         <Link to="/" onClick={onCloseMobile} className="flex h-14 shrink-0 items-center gap-2 px-4 hover:bg-accent/50">
         <Logo className="h-7 w-7 shrink-0" />
-        <span className="text-sm font-semibold tracking-tight">
-          mine<span className="font-bold text-primary">controller</span>
-        </span>
+        <Wordmark className="text-base font-extrabold tracking-tight" />
       </Link>
 
       {serverId ? (

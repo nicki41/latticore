@@ -1,5 +1,10 @@
-<svg viewBox="0 0 100 100" width="96" height="96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="minecontroller logo">
-  <polygon points="50,0 100,27 50,54 0,27" fill="#e8a4c4" />
-  <polygon points="0,27 50,54 50,100 0,73" fill="#2a2a30" />
-  <polygon points="100,27 50,54 50,100 100,73" fill="#d6598f" />
+<svg viewBox="0 0 64 64" width="96" height="96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Latticore logo">
+  <g stroke="#F5B6D2" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" fill="none">
+    <path d="M32 8 L53 20 L53 44 L32 56 L11 44 L11 20 Z" />
+    <path d="M11 20 L32 32 L53 20 M32 32 L32 56" />
+  </g>
+  <g fill="#E26AA0">
+    <circle cx="32" cy="8" r="5" /><circle cx="53" cy="20" r="5" /><circle cx="53" cy="44" r="5" /><circle cx="32" cy="56" r="5" />
+    <circle cx="11" cy="44" r="5" /><circle cx="11" cy="20" r="5" /><circle cx="32" cy="32" r="5" />
+  </g>
 </svg>
