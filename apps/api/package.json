@@ -53,7 +53,7 @@
     "@types/archiver": "^6.0.4",
     "@types/dockerode": "^3.3.31",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.5",
     "@types/qrcode": "^1.5.6",
     "@types/web-push": "^3.6.4",
     "@types/ws": "^8.18.1",
