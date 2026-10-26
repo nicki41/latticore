@@ -7,6 +7,8 @@ import {
   createServerSchema,
   effectiveServerPermissions,
   reinstallServerSchema,
+  isProxySoftware,
+  type ServerSoftware,
   updateServerSettingsSchema,
   SERVER_SOFTWARE,
   type AccessLevel,
@@ -41,22 +43,28 @@ export async function serversRoutes(fastify: FastifyInstance) {
 
   fastify.get("/", { preHandler: fastify.requirePermission("servers.view") }, async (request, reply) => {
     const user = request.user!;
-    const servers = await fastify.prisma.server.findMany({ orderBy: { createdAt: "desc" }, include: { allocations: true } });
+    const servers = await fastify.prisma.server.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { allocations: true, networkMembership: { include: { proxy: { select: { name: true } } } } },
+    });
 
-    if (user.isOwner) {
-      return reply.send({ servers: servers.map((s) => serializeServer(s, "FULL", s.allocations)) });
+    let levelFor: (serverId: string) => AccessLevel | null = () => "FULL";
+    if (!user.isOwner) {
+      const accessRows = await fastify.prisma.serverAccess.findMany({ where: { userId: user.id } });
+      const accessByServerId = new Map(accessRows.map((a) => [a.serverId, a.level as AccessLevel]));
+      levelFor = (serverId) => accessByServerId.get(serverId) ?? null;
     }
-
-    const accessRows = await fastify.prisma.serverAccess.findMany({ where: { userId: user.id } });
-    const accessByServerId = new Map(accessRows.map((a) => [a.serverId, a.level]));
+    const canView = (serverId: string) => user.isOwner || effectiveServerPermissions([...user.permissions], levelFor(serverId)).has("servers.view");
 
     const visible = servers
+      .filter((server) => canView(server.id))
       .map((server) => {
-        const level = (accessByServerId.get(server.id) as AccessLevel | undefined) ?? null;
-        const effective = effectiveServerPermissions([...user.permissions], level);
-        return effective.has("servers.view") ? serializeServer(server, level!, server.allocations) : null;
-      })
-      .filter((s) => s !== null);
+        const member = server.networkMembership;
+        const network = member
+          ? { proxyId: member.proxyServerId, proxyName: canView(member.proxyServerId) ? member.proxy.name : null, name: member.name }
+          : null;
+        return serializeServer(server, levelFor(server.id)!, server.allocations, network);
+      });
 
     return reply.send({ servers: visible });
   });
@@ -75,8 +83,12 @@ export async function serversRoutes(fastify: FastifyInstance) {
   });
 
   fastify.get("/:id", { preHandler: fastify.requireServerAccess("servers.view") }, async (request, reply) => {
-    const allocations = await fastify.prisma.serverAllocation.findMany({ where: { serverId: request.mcServer!.id } });
-    return reply.send({ server: serializeServer(request.mcServer!, request.serverAccessLevel ?? "FULL", allocations) });
+    const server = request.mcServer!;
+    const [allocations, network] = await Promise.all([
+      fastify.prisma.serverAllocation.findMany({ where: { serverId: server.id } }),
+      fastify.networkService.membershipFor(server.id, request.user!),
+    ]);
+    return reply.send({ server: serializeServer(server, request.serverAccessLevel ?? "FULL", allocations, network) });
   });
 
   fastify.get("/:id/stats", { preHandler: fastify.requireServerAccess("servers.view") }, async (request, reply) => {
@@ -198,6 +210,11 @@ export async function serversRoutes(fastify: FastifyInstance) {
     const { keepFiles } = deleteQuerySchema.parse(request.query);
     const serverId = request.mcServer!.id;
     const name = request.mcServer!.name;
+
+    // Networks first: a deleted proxy returns its backends to standalone,
+    // a deleted backend disappears from its proxy's server list.
+    if (isProxySoftware(request.mcServer!.software as ServerSoftware)) await fastify.networkService.dissolve(request.mcServer!);
+    else await fastify.networkService.leaveNetwork(request.mcServer!);
 
     await fastify.serverManager.deleteServer(serverId, { keepFiles });
     await fastify.backupService.deleteAllForServer(serverId);

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Download, Puzzle } from "lucide-react";
-import { SOFTWARE_TO_MODRINTH_LOADER, pluginTerminologyFor } from "@minecraftpanel/shared";
+import { SOFTWARE_TO_MODRINTH_LOADER, isProxySoftware, pluginTerminologyFor } from "@minecraftpanel/shared";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/layout/EmptyState";
@@ -23,10 +23,13 @@ export default function ServerPluginsPage() {
   const { hasPermission } = useAuth();
   const kind = pluginTerminologyFor(server.software);
   const serverLoader = SOFTWARE_TO_MODRINTH_LOADER[server.software];
+  // A proxy's version (e.g. Velocity 3.5.1) isn't a Minecraft version — don't filter or match installs by it.
+  const isProxy = isProxySoftware(server.software);
+  const serverGameVersion = isProxy ? undefined : server.mcVersion;
 
   const [query, setQuery] = useState("");
   const [loaderFilter, setLoaderFilter] = useState(serverLoader ?? "all");
-  const [gameVersions, setGameVersions] = useState<string[]>([server.mcVersion]);
+  const [gameVersions, setGameVersions] = useState<string[]>(serverGameVersion ? [serverGameVersion] : []);
   const [page, setPage] = useState(0);
   const [installingProjectId, setInstallingProjectId] = useState<string | null>(null);
 
@@ -76,7 +79,7 @@ export default function ServerPluginsPage() {
   async function handleInstall(projectId: string, title: string, slug: string, author: string) {
     setInstallingProjectId(projectId);
     try {
-      const result = await quickInstall.mutateAsync({ slug, loader: serverLoader, gameVersion: server.mcVersion, author });
+      const result = await quickInstall.mutateAsync({ slug, loader: serverLoader, gameVersion: serverGameVersion, author });
       toast.success(`Installed ${title} (${result.filename}). Restart the server to load it.`);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : `Failed to install ${title}.`);
@@ -117,7 +120,7 @@ export default function ServerPluginsPage() {
         <div>
           <h2 className="text-sm font-semibold">Browse Modrinth</h2>
           <p className="text-xs text-muted-foreground">
-            Installing always picks the newest version matching this server&apos;s actual loader ({serverLoader}) and Minecraft version,
+            Installing always picks the newest version matching this server&apos;s actual loader ({serverLoader}){isProxy ? "" : " and Minecraft version"},
             regardless of the loader filter below — the filter is just for browsing/discovery.
           </p>
         </div>
@@ -152,7 +155,7 @@ export default function ServerPluginsPage() {
                   key={hit.project_id}
                   hit={hit}
                   installed={installedProjectIds.has(hit.project_id)}
-                  compatibleWith={server.mcVersion}
+                  compatibleWith={serverGameVersion}
                   action={{
                     label: installedProjectIds.has(hit.project_id) ? "Reinstall" : "Install",
                     icon: Download,

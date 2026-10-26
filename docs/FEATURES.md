@@ -14,6 +14,7 @@ All screenshots below are from a local demo instance seeded with placeholder dat
 - [Plugins & mods (Modrinth)](#plugins--mods-modrinth)
 - [Backups](#backups)
 - [Scheduler](#scheduler)
+- [Proxy networks](#proxy-networks)
 - [Port allocations](#port-allocations)
 - [Notifications](#notifications)
 - [Users, roles & audit log](#users-roles--audit-log)
@@ -62,7 +63,7 @@ Playtime, session history, last-seen, and last-known IP per player, tracked from
 
 ## Plugins & mods (Modrinth)
 
-Search and install plugins/mods straight from the panel, matched automatically to the server's actual loader (Paper/Fabric/...) and Minecraft version — no manually hunting for a compatible build.
+Search and install plugins/mods straight from the panel, matched automatically to the server's actual loader (Paper/Fabric/Velocity/...) and Minecraft version — no manually hunting for a compatible build.
 
 [UniversalAdmin](https://modrinth.com/collection/DrMT8zro) — a free all-in-one admin plugin for Paper and Velocity networks, with its official extensions — is recommended at the top of both the Modrinth page and a server's Plugins tab (only where the server can load it), installable in one click. The list is loaded live from the Modrinth collection, so new extensions show up without a panel update.
 
@@ -84,6 +85,16 @@ A `tar` archive of the server's entire data directory, stored outside that direc
 Cron-driven workflows of ordered steps — console commands, start/stop/restart, or a backup — each with an optional delay before the next step runs. Point it at a nightly backup, a scheduled restart, or a `say` announcement before one. Schedules run in the panel's configured time zone (`TZ`), DST included — the editor shows the next runs in that zone.
 
 ![Scheduler workflow list](assets/screenshots/scheduler.png)
+
+## Proxy networks
+
+Create a **Velocity** or **BungeeCord** server from the same wizard (the "Proxy" group), then open its **Network** tab and add servers to it. For every server you add, the panel does everything a proxy setup normally needs by hand:
+
+- configures player forwarding on the backend — Velocity's signed *modern* forwarding with a generated shared secret, or BungeeCord's IP forwarding — and turns its own login check (`online-mode`) off, since the proxy authenticates players;
+- takes the backend's port off the host, so nobody can connect to it around the proxy (it stays reachable for the proxy over the internal Docker network);
+- writes the proxy's server list and join order (`velocity.toml` / `config.yml`) and reloads a running proxy live.
+
+Reorder servers to choose where players land first, remove one to make it standalone again (online-mode and the published port come back). The **Networks** page lists every proxy with the servers behind it; a backend's own header shows which network it belongs to and that it's only reachable via the proxy. Automatic setup covers Paper backends (Velocity needs Paper 1.13+); other servers are listed with the reason they can't be added. See [operations.md#proxy-networks](operations.md#proxy-networks).
 
 ## Port allocations
 

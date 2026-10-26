@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { PrismaClient, Server } from "@prisma/client";
-import type { PlayerDto } from "@minecraftpanel/shared";
+import { isProxySoftware, type PlayerDto, type ServerSoftware } from "@minecraftpanel/shared";
 import { env } from "../../config/env.js";
 import { safeResolve } from "../../lib/safePath.js";
 import { BadRequestError, ConflictError } from "../../lib/errors.js";
@@ -141,7 +141,8 @@ export class PlayerService {
   }
 
   private async getOnlinePlayerNames(server: Server): Promise<string[]> {
-    if (server.status !== "RUNNING") return [];
+    // Proxies have no `list` (it would just time out) and no players of their own.
+    if (server.status !== "RUNNING" || isProxySoftware(server.software as ServerSoftware)) return [];
     try {
       const response = await this.manager.sendCommand(server.id, "list", { silent: true });
       // "There are 2 of a max of 20 players online: Alice, Bob"

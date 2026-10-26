@@ -8,6 +8,7 @@ Day-to-day running of the panel: first admin setup, backups, updates, and troubl
 - [Port allocations](#port-allocations)
 - [Backups](#backups)
 - [Reinstalling or changing a server's version](#reinstalling-or-changing-a-servers-version)
+- [Proxy networks](#proxy-networks)
 - [Installing the panel as an app (PWA)](#installing-the-panel-as-an-app-pwa)
 - [Updates](#updates)
 - [Troubleshooting](#troubleshooting)
@@ -54,6 +55,26 @@ For offsite protection, periodically back up the whole `data/` folder externally
 
 Worlds, `server.properties`, configs and plugins/mods are kept — only the server jar/libraries and the launch script are replaced. Plugins/mods built for the old version may need updating on the **Plugins/Mods** tab afterwards.
 
+## Proxy networks
+
+1. **Create the proxy**: Create Server → *Proxy* → **Velocity** (recommended) or **BungeeCord** (for networks that include servers older than 1.13). 1 GB of RAM is plenty for a small network. The proxy's port is the address players join.
+2. **Add servers**: open the proxy's **Network** tab → **Add server**, pick a Paper server and a name (players switch with `/server <name>`). The first server in the list is where players land.
+3. **Restart what the panel tells you to**: a running backend needs one restart to pick up forwarding and to drop its public port; Velocity reloads its server list live, BungeeCord needs a restart after a server was *removed* (its reload can only add servers).
+
+What the panel changes on a backend, so you know where to look:
+
+| File | Velocity | BungeeCord |
+|---|---|---|
+| `server.properties` | `online-mode=false` | `online-mode=false` |
+| `config/paper-global.yml` (1.19+) / `paper.yml` (older) | `proxies.velocity.enabled: true`, the proxy's `secret` | `proxies.velocity.enabled: false` |
+| `spigot.yml` | `settings.bungeecord: false` | `settings.bungeecord: true` |
+
+On the proxy it owns `bind`, the forwarding mode and the `[servers]`/`[forced-hosts]` tables of `velocity.toml` (or `listeners[0].host/priorities`, `servers` and `ip_forward` in BungeeCord's `config.yml`) — everything else in those files stays yours to edit in the file manager. Velocity's `forwarding.secret` is generated once and reused.
+
+Removing a server from the network, or deleting the proxy, returns every affected backend to standalone (online-mode back on, port published again on its next start). Deleting a backend removes it from the proxy's list.
+
+**Why the backend's port is hidden**: with `online-mode=false` a backend trusts whatever identity the proxy forwards. With BungeeCord's IP forwarding anyone who reaches the backend directly could claim to be any player — so backends in a network are only reachable from the proxy, over the Docker network (`mcpanel-<name>:25565` inside the proxy container).
+
 ## Installing the panel as an app (PWA)
 
 The frontend ships a web app manifest and service worker (`apps/web/public/manifest.json` / `sw.js`), so any modern browser can install it as a standalone app instead of just bookmarking a tab — icon, splash screen, its own window, no browser chrome.
@@ -96,6 +117,9 @@ Docker couldn't bind one of the server's ports on the host — usually something
 
 **A Forge/NeoForge server ends in `Error` with "Installation failed: The installer exited with code ..."**
 The message ends with the installer's own last output line. Most often it's a network problem while the installer downloads libraries from Maven/Mojang — the installer container needs outbound internet access. Fix the cause, then **Settings → Danger zone → Reinstall** to try again.
+
+**Players can't join a backend through the proxy ("You must connect through a proxy" / "unable to connect")**
+The backend still runs with its old settings — restart it once after adding it to the network. Check that it's running and that the proxy's Network tab lists it. For Velocity, a backend older than Paper 1.13 can't use modern forwarding; use BungeeCord for it.
 
 **Scheduled workflows run at the wrong hour**
 They run in the panel's `TZ` (default `UTC`). Set `TZ` in `.env` — e.g. `TZ=Europe/Berlin` — and recreate the container (`docker compose up -d`). The scheduler editor shows which zone it's using.

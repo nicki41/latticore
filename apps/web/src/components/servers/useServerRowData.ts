@@ -2,10 +2,9 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import type { ServerDto } from "@minecraftpanel/shared";
 import { useServerAction, useServerStats } from "@/lib/servers";
-import { usePlayers } from "@/lib/players";
-import { useServerConfigFile } from "@/lib/serverConfig";
 import { useMetricsHistory } from "@/lib/metricsHistory";
 import { usePublicIp } from "@/lib/system";
+import { serverAddressLabel, useServerPlayerSummary } from "@/lib/serverSummary";
 import { serverIconUrl, useServerIconVersion } from "@/lib/serverIcon";
 import { useAuth } from "@/lib/auth";
 import { formatUptime } from "@/lib/uptime";
@@ -29,15 +28,11 @@ export function useServerRowData(server: ServerDto) {
   const restart = useServerAction(server.id, "restart");
 
   const stats = useServerStats(server.id, isRunning);
-  const players = usePlayers(server.id);
-  const properties = useServerConfigFile(server.id, "server-properties");
+  const { onlineCount, maxPlayers } = useServerPlayerSummary(server);
   const publicIp = usePublicIp();
   const history = useMetricsHistory(server.id, "15m", isRunning);
   const { version: iconVersion } = useServerIconVersion(server.id);
 
-  const maxPlayersRaw = properties.data?.values["max-players"];
-  const maxPlayers = typeof maxPlayersRaw === "number" ? maxPlayersRaw : null;
-  const onlineCount = players.data?.players.filter((p) => p.online).length ?? 0;
 
   const loadSeries: SparklinePoint[] = useMemo(
     () =>
@@ -52,7 +47,7 @@ export function useServerRowData(server: ServerDto) {
     ? computeLoadPercent(stats.data.cpuPercent, stats.data.memoryUsageBytes, stats.data.memoryLimitBytes, server.cpuCores)
     : null;
 
-  const address = publicIp.data?.publicIp ? `${publicIp.data.publicIp}:${server.port}` : `Port ${server.port}`;
+  const address = serverAddressLabel(server, publicIp.data?.publicIp);
   const uptime = isRunning ? formatUptime(stats.data?.startedAt ?? null) : "Offline";
 
   const busy = start.isPending || stop.isPending || restart.isPending;

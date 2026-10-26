@@ -1,4 +1,5 @@
 import type { AccessLevel, ServerRuntime, ServerSoftware, ServerStatus } from "./enums.js";
+import type { NetworkMembershipDto } from "./network.js";
 
 export interface ServerAllocationDto {
   id: string;
@@ -20,6 +21,10 @@ export interface ServerDto {
   status: ServerStatus;
   statusDetail: string | null;
   port: number;
+  /** False while the server sits behind a proxy: `port` stays reserved but isn't published on the host. */
+  exposePort: boolean;
+  /** Set when this server is a backend in a Velocity/BungeeCord network. */
+  network: NetworkMembershipDto | null;
   /** Extra ports published in addition to `port` — managed from the Allocations page, applied on next (re)start. */
   allocations: ServerAllocationDto[];
   memoryMb: number;

@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ServerConfigFileValuesDto } from "@minecraftpanel/shared";
 import { api } from "./api";
 
-export function useServerConfigFile(serverId: string, fileId: string) {
+export function useServerConfigFile(serverId: string, fileId: string, enabled = true) {
   return useQuery({
     queryKey: ["servers", serverId, "config", fileId],
     queryFn: () => api.get<ServerConfigFileValuesDto>(`/servers/${serverId}/config/${fileId}`),
+    enabled,
   });
 }
 

@@ -19,15 +19,18 @@ import {
   CalendarClock,
   Network,
   ChevronRight,
+  Waypoints,
 } from "lucide-react";
-import type { Permission } from "@minecraftpanel/shared";
+import { isProxySoftware, type Permission, type ServerSoftware } from "@minecraftpanel/shared";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useServers } from "@/lib/servers";
 import { StatusDot } from "@/components/servers/StatusBadge";
 import { Logo } from "./Logo";
 
-const SERVER_NAV_SECTIONS: { title: string; items: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] }[] = [
+type ServerNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
+
+const SERVER_NAV_SECTIONS: { title: string; items: ServerNavItem[] }[] = [
   {
     title: "Monitor",
     items: [
@@ -75,6 +78,7 @@ const sections: NavSection[] = [
   {
     title: "Servers",
     items: [
+      { to: "/servers/networks", label: "Networks", icon: Waypoints, permission: "servers.view" },
       { to: "/servers/allocations", label: "Allocations", icon: Network, permission: "servers.view" },
       { to: "/servers/new", label: "Create Server", icon: PlusCircle, permission: "servers.create" },
     ],
@@ -106,6 +110,16 @@ interface SidebarProps {
 }
 
 const SWIPE_CLOSE_THRESHOLD_PX = 60;
+const NON_SERVER_PATHS = new Set(["new", "allocations", "networks"]);
+
+/** Proxies have no players of their own; they get a Network tab in that slot instead. */
+function serverNavSections(software: ServerSoftware | undefined) {
+  if (!software || !isProxySoftware(software)) return SERVER_NAV_SECTIONS;
+  return SERVER_NAV_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.map((item): ServerNavItem => (item.to === "players" ? { to: "network", label: "Network", icon: Waypoints } : item)),
+  }));
+}
 
 export function Sidebar({ collapsed = false, mobileOpen = false, onCloseMobile }: SidebarProps) {
   const { hasPermission } = useAuth();
@@ -137,12 +151,12 @@ export function Sidebar({ collapsed = false, mobileOpen = false, onCloseMobile }
     touchDeltaX.current = 0;
   };
 
-  // "/servers/new" and "/servers/allocations" also match this splat pattern
-  // (id="new"/"allocations") — excluded explicitly since those are the
-  // creation wizard and the allocations page, not an existing server.
+  // "/servers/new", "/servers/allocations" and "/servers/networks" also match
+  // this splat pattern — excluded explicitly since those are the creation
+  // wizard and instance-wide pages, not an existing server.
   const serverMatch = matchPath("/servers/:id/*", location.pathname);
   const serverId =
-    serverMatch && serverMatch.params.id !== "new" && serverMatch.params.id !== "allocations" ? serverMatch.params.id : undefined;
+    serverMatch && !NON_SERVER_PATHS.has(serverMatch.params.id ?? "") ? serverMatch.params.id : undefined;
 
   const [allServersOpen, setAllServersOpen] = useState(() => Boolean(serverId));
   const { data } = useServers();
@@ -192,7 +206,7 @@ export function Sidebar({ collapsed = false, mobileOpen = false, onCloseMobile }
 
       {serverId ? (
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 scrollbar-thin">
-          {SERVER_NAV_SECTIONS.map((section) => (
+          {serverNavSections(servers.find((s) => s.id === serverId)?.software).map((section) => (
             <div key={section.title}>
               <p className="mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{section.title}</p>
               <div className="space-y-0.5">

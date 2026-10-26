@@ -19,6 +19,7 @@ import auditPlugin from "./plugins/audit.js";
 import authPlugin from "./plugins/auth.js";
 import minecraftPlugin from "./plugins/minecraft.js";
 import backupsPlugin from "./plugins/backups.js";
+import networkPlugin from "./plugins/network.js";
 import schedulerPlugin from "./plugins/scheduler.js";
 import liveSessionsPlugin from "./plugins/liveSessions.js";
 import metricsHistoryPlugin from "./plugins/metricsHistory.js";
@@ -127,6 +128,7 @@ export async function buildApp() {
   await app.register(authPlugin);
   await app.register(minecraftPlugin);
   await app.register(backupsPlugin);
+  await app.register(networkPlugin);
   await app.register(schedulerPlugin);
   await app.register(liveSessionsPlugin);
   await app.register(metricsHistoryPlugin);

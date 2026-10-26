@@ -5,7 +5,7 @@ import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 import type { Readable } from "node:stream";
 import type { PrismaClient, Server } from "@prisma/client";
-import type { ServerSoftware, ServerStatus } from "@minecraftpanel/shared";
+import { isProxySoftware, type ServerSoftware, type ServerStatus } from "@minecraftpanel/shared";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import { getDirectorySize } from "../lib/fsUtils.js";
@@ -23,11 +23,21 @@ import { deriveRconPassword } from "./runtime/rconSecret.js";
 import { AttachConsoleSession } from "./runtime/AttachConsoleSession.js";
 import { ServerInstaller, type InstallerRuntime } from "./install/ServerInstaller.js";
 import { ServerConfigService } from "../modules/serverConfig/serverConfig.service.js";
+import { backendAddress, writeProxyConfig, type ProxyBackendEntry } from "./proxy/proxyConfig.js";
 import type Docker from "dockerode";
 import type { Readable as NodeReadable } from "node:stream";
 
-/** Minecraft's own boot-complete line — printed by the same underlying vanilla DedicatedServer sequence Paper/Fabric/Forge/NeoForge all wrap, so one regex covers all five software types. Always English regardless of locale/motd, since the server console isn't localized. */
+/** Minecraft's own boot-complete line — printed by the same underlying vanilla DedicatedServer sequence Paper/Fabric/Forge/NeoForge all wrap, so one regex covers all five game-server software types. Always English regardless of locale/motd, since the server console isn't localized. */
 const READY_LINE = /Done \([\d.,]+s\)! For help, type "help"/;
+/** Proxies print their own: Velocity "Done (1.4s)!" (no help hint), BungeeCord "Listening on /0.0.0.0:25565" — both verified against their sources. */
+const PROXY_READY_LINES: Partial<Record<ServerSoftware, RegExp>> = {
+  VELOCITY: /Done \([\d.,]+s\)!/,
+  BUNGEECORD: /Listening on \//,
+};
+
+function readyLineFor(software: string): RegExp {
+  return PROXY_READY_LINES[software as ServerSoftware] ?? READY_LINE;
+}
 
 /**
  * Statuses owned by an in-flight lifecycle operation. reconcile() never
@@ -213,7 +223,7 @@ export class MinecraftServerManager extends EventEmitter {
       await this.settleAfterFailure(serverId, "Failed to start the server", err);
       throw err;
     }
-    this.watchBoot(serverId, server.runtime, containerId);
+    this.watchBoot(server, containerId);
   }
 
   async stopServer(serverId: string): Promise<void> {
@@ -258,7 +268,7 @@ export class MinecraftServerManager extends EventEmitter {
       await this.settleAfterFailure(serverId, "Failed to restart the server", err);
       throw err;
     }
-    this.watchBoot(serverId, server.runtime, containerId);
+    this.watchBoot(server, containerId);
   }
 
   /**
@@ -311,7 +321,7 @@ export class MinecraftServerManager extends EventEmitter {
 
         if (info?.State.Running) {
           if (server.status === "STARTING" && !(await this.hasBootedSince(server, info))) {
-            this.watchBoot(server.id, server.runtime, server.containerId!);
+            this.watchBoot(server, server.containerId!);
           } else {
             await this.updateStatus(server.id, "RUNNING");
           }
@@ -385,6 +395,7 @@ export class MinecraftServerManager extends EventEmitter {
         runtime: "PANEL_MANAGED",
         mcVersion: server.mcVersion,
         hostPort: server.port,
+        publishPort: server.exposePort,
         extraPorts,
         memoryMb: server.memoryMb,
         cpuCores: server.cpuCores,
@@ -407,6 +418,7 @@ export class MinecraftServerManager extends EventEmitter {
       softwareEnv,
       mcVersion: server.mcVersion,
       hostPort: server.port,
+      publishPort: server.exposePort,
       extraPorts,
       memoryMb: server.memoryMb,
       cpuCores: server.cpuCores,
@@ -559,7 +571,8 @@ export class MinecraftServerManager extends EventEmitter {
     // itself afterward. See the note in DockerMinecraftRuntime.createContainer().
     // (mkdir first: a reinstall may run against a data dir someone emptied by hand.)
     await fs.mkdir(this.absoluteDataPath(server.dataDir), { recursive: true });
-    await this.configService.createWithDefaults(server, "server-properties");
+    const isProxy = isProxySoftware(server.software as ServerSoftware);
+    if (!isProxy) await this.configService.createWithDefaults(server, "server-properties");
 
     const extraPorts = (await this.prisma.serverAllocation.findMany({ where: { serverId: server.id } })).map((a) => a.port);
 
@@ -571,6 +584,17 @@ export class MinecraftServerManager extends EventEmitter {
       await this.updateStatus(serverId, "INSTALLING");
       const plan = await provider.resolveInstallPlan(server.mcVersion);
       const result = await this.installer.install(server, plan);
+      if (isProxy) {
+        // Before the first boot, so even a brand-new proxy binds the
+        // container's game port and uses the right forwarding mode; the
+        // backend list is rewritten from the network on every change.
+        await writeProxyConfig(
+          server.software as ServerSoftware,
+          this.absoluteDataPath(server.dataDir),
+          await this.proxyBackendEntries(server.id),
+          plan.kind === "direct-download" ? plan.filename : null,
+        );
+      }
       await this.prisma.server.update({
         where: { id: serverId },
         data: { buildVersion: result.buildVersion, javaImageTag: result.javaImageTag, installManifest: result.installManifest },
@@ -582,6 +606,7 @@ export class MinecraftServerManager extends EventEmitter {
         runtime: "PANEL_MANAGED",
         mcVersion: server.mcVersion,
         hostPort: server.port,
+        publishPort: server.exposePort,
         extraPorts,
         memoryMb: server.memoryMb,
         cpuCores: server.cpuCores,
@@ -605,6 +630,7 @@ export class MinecraftServerManager extends EventEmitter {
       softwareEnv,
       mcVersion: server.mcVersion,
       hostPort: server.port,
+      publishPort: server.exposePort,
       extraPorts,
       memoryMb: server.memoryMb,
       cpuCores: server.cpuCores,
@@ -618,23 +644,23 @@ export class MinecraftServerManager extends EventEmitter {
   }
 
   /** Picks the right "wait for ready" strategy per runtime kind — PANEL_MANAGED watches the console for Minecraft's own ready line (accurate); LEGACY falls back to polling Docker's coarse State.Running (all it's ever had, unchanged). */
-  private waitUntilReady(server: Pick<Server, "id" | "runtime">, containerId: string, timeoutMs = 5 * 60 * 1000): Promise<void> {
+  private waitUntilReady(server: Pick<Server, "id" | "runtime" | "software">, containerId: string, timeoutMs = 5 * 60 * 1000): Promise<void> {
     return server.runtime === "PANEL_MANAGED"
-      ? this.waitForReadyLine(server.id, containerId, timeoutMs)
+      ? this.waitForReadyLine(server.id, containerId, readyLineFor(server.software), timeoutMs)
       : this.waitUntilRunningOrFailed(server.id, containerId, timeoutMs);
   }
 
   /** Fire-and-forget waitUntilReady() for a container that's already been started. */
-  private watchBoot(serverId: string, runtime: string, containerId: string): void {
-    this.waitUntilReady({ id: serverId, runtime }, containerId).catch((err) => logger.error({ err, serverId }, "Post-start reconcile failed"));
+  private watchBoot(server: Pick<Server, "id" | "runtime" | "software">, containerId: string): void {
+    this.waitUntilReady(server, containerId).catch((err) => logger.error({ err, serverId: server.id }, "Post-start reconcile failed"));
   }
 
   /** Whether a running PANEL_MANAGED container already printed its ready line since it last started — LEGACY has no ready line, so "running" is all it ever gets. */
-  private async hasBootedSince(server: Pick<Server, "runtime" | "containerId">, info: Docker.ContainerInspectInfo): Promise<boolean> {
+  private async hasBootedSince(server: Pick<Server, "runtime" | "containerId" | "software">, info: Docker.ContainerInspectInfo): Promise<boolean> {
     if (server.runtime !== "PANEL_MANAGED") return true;
     const startedAtSeconds = Math.floor(Date.parse(info.State.StartedAt) / 1000);
     const logs = await this.runtime.readLogs(server.containerId!, Number.isFinite(startedAtSeconds) ? { since: startedAtSeconds } : {});
-    return READY_LINE.test(stripAnsi(logs));
+    return readyLineFor(server.software).test(stripAnsi(logs));
   }
 
   /** Rejects an operation while another one owns the server's status — `allowed` lists transitional statuses this particular operation may interrupt (e.g. stopping a server that's still booting). */
@@ -667,7 +693,7 @@ export class MinecraftServerManager extends EventEmitter {
     this.updateStatus(serverId, "ERROR", { statusDetail: `Installation failed: ${describeError(err)}` }).catch(() => {});
   }
 
-  private async waitForReadyLine(serverId: string, containerId: string, timeoutMs: number): Promise<void> {
+  private async waitForReadyLine(serverId: string, containerId: string, readyLine: RegExp, timeoutMs: number): Promise<void> {
     const session = this.getOrCreateAttachSession(serverId, containerId);
     try {
       await session.open();
@@ -698,7 +724,7 @@ export class MinecraftServerManager extends EventEmitter {
       }, timeoutMs);
 
       unsubscribeLine = session.onLine((line) => {
-        if (READY_LINE.test(stripAnsi(line.text))) {
+        if (readyLine.test(stripAnsi(line.text))) {
           finish(() => this.updateStatus(serverId, "RUNNING"));
         }
       });
@@ -779,6 +805,16 @@ export class MinecraftServerManager extends EventEmitter {
       if (!used.has(port)) return port;
     }
     throw new ConflictError("No free ports left in the configured MC_PORT_RANGE_MIN..MC_PORT_RANGE_MAX range.");
+  }
+
+  /** The proxy's network members in join order, as written into its config. */
+  async proxyBackendEntries(proxyServerId: string): Promise<ProxyBackendEntry[]> {
+    const members = await this.prisma.serverNetworkMember.findMany({
+      where: { proxyServerId },
+      orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
+      include: { backend: { select: { containerName: true } } },
+    });
+    return members.map((m) => ({ name: m.name, address: backendAddress(m.backend.containerName) }));
   }
 
   private async requireServer(serverId: string): Promise<Server> {

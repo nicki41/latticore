@@ -11,7 +11,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License: GPL-3.0"></a>
 </p>
 
-A self-hosted management panel for multiple Minecraft servers. Each server runs in its own Docker container — installed and launched by the panel itself, on minimal Java-only runtime images it publishes ([`runtime-images/`](runtime-images/)), not a third-party all-in-one image — managed through a Fastify/TypeScript API with an embedded SQLite database and a React UI. One container, no separate database service, no build step — every image is pulled pre-built from GitHub Container Registry, so `docker compose up -d` really is all it takes.
+A self-hosted panel for Minecraft servers and the proxy networks that tie them together. Each server runs in its own Docker container — installed and launched by the panel itself, on minimal Java-only runtime images it publishes ([`runtime-images/`](runtime-images/)), not a third-party all-in-one image — managed through a Fastify/TypeScript API with an embedded SQLite database and a React UI. One container, no separate database service, no build step — every image is pulled pre-built from GitHub Container Registry, so `docker compose up -d` really is all it takes.
 
 ![Dashboard with three servers](docs/assets/screenshots/dashboard.png)
 
@@ -19,6 +19,7 @@ A self-hosted management panel for multiple Minecraft servers. Each server runs 
 
 - **Creation wizard** — Vanilla, Paper, Fabric, Forge (1.7.10 → today) and NeoForge, each installed and hash-verified by the panel itself (see [docs/architecture.md](docs/architecture.md#server-creation-flow))
 - **Reinstall / change version** — pick up the newest build, or switch Minecraft versions, without touching worlds, configs or mods
+- **Proxy networks** — Velocity and BungeeCord servers with a Network tab: add any Paper server in one click and the panel sets up forwarding, the shared secret, online-mode and the proxy's server list, and takes the backend's port off the internet so nobody can join around the proxy; a Networks page shows every proxy with the servers behind it
 - **Dashboard** — every server at a glance: status, uptime, players/slots, ip:port, version, and a live load sparkline
 - **Live attached console** — real stdin/stdout, not a third-party RCON wrapper
 - **File manager** with a Monaco (VS Code) editor

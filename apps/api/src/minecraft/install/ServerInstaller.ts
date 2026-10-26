@@ -13,15 +13,17 @@ import type { InstallPlan, InstallPlanInstallerJar, LaunchTarget } from "../prov
 // Download sources — verified live against the real APIs, not assumed:
 // Mojang serves the server jar itself from piston-data (not piston-meta,
 // which is only the metadata host), Paper serves it from fill-data (not
-// fill, which is only the API host), Fabric serves its self-contained
-// launcher jar straight from meta.fabricmc.net, and Forge/NeoForge serve
-// their installer jars from their own Maven repositories.
+// fill, which is only the API host — Velocity included), Fabric serves its
+// self-contained launcher jar straight from meta.fabricmc.net, Forge/NeoForge
+// serve their installer jars from their own Maven repositories, and
+// BungeeCord comes from SpigotMC's Jenkins.
 const ALLOWED_DOWNLOAD_HOSTS = new Set([
   "piston-data.mojang.com",
   "fill-data.papermc.io",
   "meta.fabricmc.net",
   "maven.minecraftforge.net",
   "maven.neoforged.net",
+  "hub.spigotmc.org",
 ]);
 
 /** Forge/NeoForge installers download every library and patch the vanilla jar — comfortably minutes on a slow link, but never this long unless something is genuinely stuck. */

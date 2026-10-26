@@ -5,6 +5,8 @@ import { PaperProvider } from "./PaperProvider.js";
 import { FabricProvider } from "./FabricProvider.js";
 import { ForgeProvider } from "./ForgeProvider.js";
 import { NeoForgeProvider } from "./NeoForgeProvider.js";
+import { VelocityProvider } from "./VelocityProvider.js";
+import { BungeeCordProvider } from "./BungeeCordProvider.js";
 import type { MinecraftServerProvider } from "./types.js";
 
 export type { MinecraftServerProvider, ProviderVersion } from "./types.js";
@@ -17,6 +19,8 @@ const providers: Record<ServerSoftware, MinecraftServerProvider> = {
   FABRIC: new FabricProvider(userAgent),
   FORGE: new ForgeProvider(userAgent),
   NEOFORGE: new NeoForgeProvider(userAgent),
+  VELOCITY: new VelocityProvider(userAgent),
+  BUNGEECORD: new BungeeCordProvider(userAgent),
 };
 
 export function getProvider(software: ServerSoftware): MinecraftServerProvider {
