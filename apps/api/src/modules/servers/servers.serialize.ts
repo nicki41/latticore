@@ -1,11 +1,16 @@
 import type { Server, ServerAllocation } from "@prisma/client";
-import type { AccessLevel, ServerDto, ServerRuntime, ServerSoftware, ServerStatus } from "@minecraftpanel/shared";
+import type { AccessLevel, NetworkMembershipDto, ServerDto, ServerRuntime, ServerSoftware, ServerStatus } from "@minecraftpanel/shared";
 
 // SQLite has no native enum type, so Server.software/status are plain
 // strings at the Prisma layer; validity is enforced at write time via Zod
 // (createServerSchema et al.), so casting back to the narrow union here —
 // at the one place every Server row becomes a ServerDto — is safe.
-export function serializeServer(server: Server, myAccessLevel: AccessLevel, allocations: ServerAllocation[] = []): ServerDto {
+export function serializeServer(
+  server: Server,
+  myAccessLevel: AccessLevel,
+  allocations: ServerAllocation[] = [],
+  network: NetworkMembershipDto | null = null,
+): ServerDto {
   return {
     id: server.id,
     name: server.name,
@@ -17,6 +22,8 @@ export function serializeServer(server: Server, myAccessLevel: AccessLevel, allo
     status: server.status as ServerStatus,
     statusDetail: server.statusDetail,
     port: server.port,
+    exposePort: server.exposePort,
+    network,
     allocations: allocations.map((a) => ({ id: a.id, port: a.port, createdAt: a.createdAt.toISOString() })),
     memoryMb: server.memoryMb,
     cpuCores: server.cpuCores,

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { StatusLabel } from "./StatusBadge";
 import { Sparkline } from "./Sparkline";
 import { ServerIconThumb } from "./ServerIconThumb";
-import { SOFTWARE_META } from "@/lib/softwareMeta";
+import { softwareVersionLabel } from "@/lib/softwareMeta";
 import { useServerRowData } from "./useServerRowData";
 
 const LOAD_COLOR = "hsl(var(--primary))";
@@ -24,7 +24,7 @@ function ServerTableRow({ server }: { server: ServerDto }) {
         </Link>
       </TableCell>
       <TableCell className="whitespace-nowrap text-muted-foreground">
-        {SOFTWARE_META[server.software].label} {server.mcVersion}
+        {softwareVersionLabel(server.software, server.mcVersion)}
       </TableCell>
       <TableCell>
         <StatusLabel status={server.status} />

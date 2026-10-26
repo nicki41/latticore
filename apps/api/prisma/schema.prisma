@@ -197,6 +197,9 @@ model Server {
   /// Keep only this many unlocked backups — the oldest are deleted after each new one (see BackupService.enforceRetention). Null keeps every backup.
   backupRetentionCount Int?
 
+  /// Whether `port` is published on the host. False for servers behind a proxy (see ServerNetworkMember): they stay reachable from the proxy over the Docker network only, so nobody can bypass the proxy's authentication by connecting directly. The port stays reserved either way.
+  exposePort Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -213,8 +216,36 @@ model Server {
   allocations      ServerAllocation[]
   notificationPreferences NotificationPreference[]
   notificationChannels    NotificationChannel[]
+  /// As a proxy (Velocity/BungeeCord): the servers behind it.
+  networkBackends         ServerNetworkMember[] @relation("NetworkProxy")
+  /// As a backend: the proxy network this server belongs to, if any.
+  networkMembership       ServerNetworkMember?  @relation("NetworkBackend")
 
   @@index([status])
+}
+
+// ------------------------------------------------------------------
+// Proxy networks — a Velocity/BungeeCord server and the servers behind
+// it. The panel writes the proxy's server list and the backends' proxy
+// forwarding settings from these rows (see modules/network/).
+// ------------------------------------------------------------------
+
+model ServerNetworkMember {
+  id              String   @id @default(cuid())
+  proxyServerId   String
+  /// A server belongs to at most one network.
+  backendServerId String   @unique
+  /// Name the proxy knows this backend by — the [servers] key in velocity.toml / the servers key in BungeeCord's config.yml (what /server <name> uses).
+  name            String
+  /// Join order: the proxy sends players to the lowest-priority backend first (velocity "try", BungeeCord "priorities").
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  proxy   Server @relation("NetworkProxy", fields: [proxyServerId], references: [id], onDelete: Cascade)
+  backend Server @relation("NetworkBackend", fields: [backendServerId], references: [id], onDelete: Cascade)
+
+  @@unique([proxyServerId, name])
+  @@index([proxyServerId])
 }
 
 // ------------------------------------------------------------------

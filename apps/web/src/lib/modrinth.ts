@@ -99,14 +99,15 @@ export function useQuickInstallPlugin(serverId: string) {
     }: {
       slug: string;
       loader?: string;
-      gameVersion: string;
+      /** Omitted for proxies, whose plugins aren't tied to a Minecraft version. */
+      gameVersion?: string;
       author?: string;
     }) => {
       const { versions } = await api.get<{ versions: ModrinthVersion[] }>(
         `/modrinth/project/${slug}/versions${toQueryString({ loader, gameVersion })}`,
       );
       const best = versions[0];
-      if (!best) throw new Error(`No version of this project is compatible with ${loader ?? "this server's software"} ${gameVersion}.`);
+      if (!best) throw new Error(`No version of this project is compatible with ${loader ?? "this server's software"}${gameVersion ? ` ${gameVersion}` : ""}.`);
       return api.post<{ filename: string }>(`/servers/${serverId}/plugins/install`, { versionId: best.id, restart: false, author });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["servers", serverId, "plugins"] }),

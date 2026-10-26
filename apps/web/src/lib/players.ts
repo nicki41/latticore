@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tansta
 import type { PlayerDto } from "@minecraftpanel/shared";
 import { api } from "./api";
 
-export function usePlayers(serverId: string) {
+export function usePlayers(serverId: string, enabled = true) {
   return useQuery({
     queryKey: ["servers", serverId, "players"],
     queryFn: () => api.get<{ players: PlayerDto[] }>(`/servers/${serverId}/players`),
+    enabled,
     refetchInterval: 5_000,
     refetchOnWindowFocus: true,
   });

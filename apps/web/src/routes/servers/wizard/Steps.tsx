@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Controller, type UseFormReturn } from "react-hook-form";
 import { Check, ExternalLink } from "lucide-react";
-import type { CreateServerInput, ServerSoftware } from "@minecraftpanel/shared";
+import { isProxySoftware, type CreateServerInput, type ServerSoftware } from "@minecraftpanel/shared";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { formatMb } from "@/lib/format";
-import { SOFTWARE_META, SOFTWARE_ORDER } from "@/lib/softwareMeta";
+import { GAME_SOFTWARE_ORDER, PROXY_SOFTWARE_ORDER, SOFTWARE_META } from "@/lib/softwareMeta";
 import { useServerVersions } from "@/lib/servers";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -35,22 +35,42 @@ export function StepBasics({ form }: StepProps) {
   );
 }
 
+/** A proxy needs far less memory than a game server; the wizard's default is sized for the latter. */
+const PROXY_DEFAULT_MEMORY_MB = 1024;
+const GAME_DEFAULT_MEMORY_MB = 4096;
+
 export function StepSoftware({ form }: StepProps) {
-  const { control } = form;
+  const { control, getValues, setValue } = form;
+
+  function pick(software: ServerSoftware, onChange: (value: ServerSoftware) => void) {
+    onChange(software);
+    // Only adjust a memory value the user hasn't changed themselves.
+    const memory = Number(getValues("memoryMb"));
+    if (isProxySoftware(software) && memory === GAME_DEFAULT_MEMORY_MB) setValue("memoryMb", PROXY_DEFAULT_MEMORY_MB);
+    if (!isProxySoftware(software) && memory === PROXY_DEFAULT_MEMORY_MB) setValue("memoryMb", GAME_DEFAULT_MEMORY_MB);
+  }
+
   return (
     <Controller
       control={control}
       name="software"
       render={({ field }) => (
+        <div className="space-y-4">
+          {[
+            { title: "Game server", order: GAME_SOFTWARE_ORDER },
+            { title: "Proxy — connects several servers into one network", order: PROXY_SOFTWARE_ORDER },
+          ].map((group) => (
+        <div key={group.title} className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.title}</p>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {SOFTWARE_ORDER.map((software) => {
+          {group.order.map((software) => {
             const meta = SOFTWARE_META[software];
             const selected = field.value === software;
             return (
               <button
                 type="button"
                 key={software}
-                onClick={() => field.onChange(software)}
+                onClick={() => pick(software, field.onChange)}
                 className={cn(
                   "flex flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors",
                   selected ? "border-primary bg-primary/10" : "border-border hover:bg-accent",
@@ -64,6 +84,9 @@ export function StepSoftware({ form }: StepProps) {
               </button>
             );
           })}
+        </div>
+        </div>
+          ))}
         </div>
       )}
     />
@@ -85,7 +108,7 @@ export function StepVersion({ form }: StepProps) {
       render={({ field, fieldState }) => (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Minecraft version</Label>
+            <Label className="text-sm font-medium">{software ? SOFTWARE_META[software].versionLabel : "Version"}</Label>
             <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <Switch checked={showUnstable} onCheckedChange={setShowUnstable} />
               Show unstable
@@ -197,7 +220,7 @@ export function StepConfirm({ form }: StepProps) {
   const rows: [string, string][] = [
     ["Name", values.name || "—"],
     ["Software", meta?.label ?? "—"],
-    ["Minecraft version", values.mcVersion || "—"],
+    [meta?.versionLabel ?? "Version", values.mcVersion || "—"],
     ["RAM", values.memoryMb ? formatMb(Number(values.memoryMb)) : "—"],
     ["CPU cores", values.cpuCores ? String(values.cpuCores) : "—"],
     ["Disk limit", values.diskLimitMb ? formatMb(Number(values.diskLimitMb)) : "No limit"],

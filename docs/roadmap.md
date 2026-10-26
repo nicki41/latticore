@@ -60,7 +60,7 @@ What a game module provides — the panel core only knows this contract:
 - The create wizard starts with **picking a game** (icon grid), then that game's own steps.
 - Server pages show only the tabs a game provides — no empty "Players" tab for a game without one.
 - Shared building blocks (console, files, backups, scheduler, notifications, allocations) stay in the core and work for every game.
-- **First wave**: Minecraft Bedrock, Velocity/BungeeCord (+ Geyser), and Steam games via a shared SteamCMD installer — e.g. Valheim, Palworld, Project Zomboid, CS2, Rust. Exact Steam list driven by demand.
+- **First wave**: Minecraft Bedrock (+ Geyser on the existing proxies), and Steam games via a shared SteamCMD installer — e.g. Valheim, Palworld, Project Zomboid, CS2, Rust. Exact Steam list driven by demand.
 
 ## Phase 3 — Nodes (multiple machines)
 
@@ -108,6 +108,8 @@ flowchart LR
 - **Translations** — German first.
 
 ## Still open
+
+- **Fabric/Forge backends in networks** — need a proxy-forwarding mod (FabricProxy-Lite, Proxy-Compatible-Forge) installed and configured; the panel could do that through the Modrinth integration.
 
 - **Legacy (itzg/RCON) runtime** — remove once no servers use it.
 - Exact list of Steam games in the first wave.

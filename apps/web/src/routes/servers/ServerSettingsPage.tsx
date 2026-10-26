@@ -1,4 +1,4 @@
-import { getServerConfigSchema } from "@minecraftpanel/shared";
+import { getServerConfigSchema, isProxySoftware } from "@minecraftpanel/shared";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth";
 import { useServerOutletContext } from "./useServerOutletContext";
@@ -14,12 +14,14 @@ export default function ServerSettingsPage() {
   const { hasPermission } = useAuth();
   const canEdit = server.myAccessLevel === "FULL" && hasPermission("servers.settings.edit");
   const typeConfigSchema = getServerConfigSchema(server.software);
+  // A proxy has no server.properties; its own config lives in velocity.toml / config.yml (Files).
+  const hasProperties = !isProxySoftware(server.software);
 
   return (
     <Tabs defaultValue="general">
       <TabsList>
         <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="properties">Server Properties</TabsTrigger>
+        {hasProperties && <TabsTrigger value="properties">Server Properties</TabsTrigger>}
         {typeConfigSchema && <TabsTrigger value="type-config">{typeConfigSchema.tabLabel}</TabsTrigger>}
         <TabsTrigger value="resources">Resources</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -29,9 +31,11 @@ export default function ServerSettingsPage() {
         <GeneralSettingsTab server={server} canEdit={canEdit} />
         <DangerZoneCard server={server} />
       </TabsContent>
-      <TabsContent value="properties">
-        <ServerPropertiesTab server={server} canEdit={canEdit} />
-      </TabsContent>
+      {hasProperties && (
+        <TabsContent value="properties">
+          <ServerPropertiesTab server={server} canEdit={canEdit} />
+        </TabsContent>
+      )}
       {typeConfigSchema && (
         <TabsContent value="type-config">
           <ServerTypeConfigTab server={server} canEdit={canEdit} />

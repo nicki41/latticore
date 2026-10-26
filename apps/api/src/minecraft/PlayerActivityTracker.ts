@@ -1,7 +1,7 @@
 import type { Readable } from "node:stream";
 import { EventEmitter } from "node:events";
 import type { PrismaClient } from "@prisma/client";
-import type { ServerStatus } from "@minecraftpanel/shared";
+import { isProxySoftware, PROXY_SOFTWARE, type ServerSoftware, type ServerStatus } from "@minecraftpanel/shared";
 import { logger } from "../lib/logger.js";
 import { stripAnsi } from "../lib/ansi.js";
 import { expireDueBans } from "../modules/players/playerBans.service.js";
@@ -89,7 +89,7 @@ export class PlayerActivityTracker extends EventEmitter {
   }
 
   private async bootstrap(): Promise<void> {
-    const servers = await this.prisma.server.findMany({ where: { status: "RUNNING" }, select: { id: true } });
+    const servers = await this.prisma.server.findMany({ where: { status: "RUNNING", software: { notIn: [...PROXY_SOFTWARE] } }, select: { id: true } });
     await Promise.all(servers.map((s) => this.ensureTracking(s.id)));
   }
 
@@ -103,6 +103,11 @@ export class PlayerActivityTracker extends EventEmitter {
   };
 
   private async ensureTracking(serverId: string): Promise<void> {
+    if (this.disposed || this.tracked.has(serverId)) return;
+    // Proxies log joins in their own format and have no `list`/whitelist/
+    // bans of their own — player history lives on the backends.
+    const server = await this.prisma.server.findUnique({ where: { id: serverId }, select: { software: true } }).catch(() => null);
+    if (server && isProxySoftware(server.software as ServerSoftware)) return;
     if (this.disposed || this.tracked.has(serverId)) return;
     const state: TrackedServer = { stream: null, retryTimer: null };
     this.tracked.set(serverId, state);

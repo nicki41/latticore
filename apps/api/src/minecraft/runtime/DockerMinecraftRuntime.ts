@@ -15,6 +15,8 @@ export interface CreateContainerOptions {
   runtime: ServerRuntime;
   mcVersion: string;
   hostPort: number;
+  /** False keeps the game port off the host (server sits behind a proxy, reachable over the Docker network only) — see Server.exposePort. Defaults to true. */
+  publishPort?: boolean;
   /** Extra ports published 1:1 (host==container, tcp+udp) alongside hostPort — see ServerAllocation. */
   extraPorts?: number[];
   memoryMb: number;
@@ -115,7 +117,7 @@ export class DockerMinecraftRuntime {
       PidsLimit: 2048,
       RestartPolicy: { Name: "unless-stopped" },
       PortBindings: {
-        [`${CONTAINER_GAME_PORT}/tcp`]: [{ HostPort: String(options.hostPort) }],
+        ...(options.publishPort === false ? {} : { [`${CONTAINER_GAME_PORT}/tcp`]: [{ HostPort: String(options.hostPort) }] }),
         ...extraPortBindings(extraPorts),
       },
       Binds: [`${hostDataDir}:/data`],

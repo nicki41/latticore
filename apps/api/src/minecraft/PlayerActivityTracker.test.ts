@@ -207,6 +207,8 @@ function makeFakePrisma(runningServerIds: string[] = []) {
 
   const server = {
     findMany: vi.fn(async () => runningServerIds.map((id) => ({ id }))),
+    // Every fake server is a regular game server unless its id says it's a proxy.
+    findUnique: vi.fn(async ({ where }: { where: { id: string } }) => ({ software: where.id.startsWith("proxy") ? "VELOCITY" : "PAPER" })),
   };
 
   return {
@@ -290,6 +292,21 @@ describe("PlayerActivityTracker", () => {
     await flush();
 
     expect(manager.getLogStream).toHaveBeenCalledWith("srv-1", { tail: 0 });
+    tracker.stop();
+  });
+
+  it("never tracks a proxy — its players are recorded on the backends", async () => {
+    const prisma = makeFakePrisma([]);
+    const streams = new Map<string, FakeLogStream>();
+    const { manager, sentCommands, emitStatus } = makeFakeManager(streams, new Map());
+    const tracker = new PlayerActivityTracker(prisma, manager);
+
+    tracker.start();
+    emitStatus("proxy-1", "RUNNING");
+    await flush();
+
+    expect(manager.getLogStream).not.toHaveBeenCalled();
+    expect(sentCommands).toEqual([]);
     tracker.stop();
   });
 

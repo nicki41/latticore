@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { updateServerSettingsSchema, type ServerDto, type UpdateServerSettingsInput } from "@minecraftpanel/shared";
+import { isProxySoftware, updateServerSettingsSchema, type ServerDto, type UpdateServerSettingsInput } from "@minecraftpanel/shared";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
@@ -184,7 +184,8 @@ export function GeneralSettingsTab({ server, canEdit }: { server: ServerDto; can
         </Card>
       </form>
 
-      <ServerListCard server={server} canEdit={canEdit} />
+      {/* Proxies keep MOTD and slots in velocity.toml / config.yml, not server.properties — edit those in Files. */}
+      {!isProxySoftware(server.software) && <ServerListCard server={server} canEdit={canEdit} />}
     </div>
   );
 }

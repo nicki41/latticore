@@ -1,8 +1,23 @@
-export const SERVER_SOFTWARE = ["VANILLA", "PAPER", "FABRIC", "FORGE", "NEOFORGE"] as const;
+export const SERVER_SOFTWARE = ["VANILLA", "PAPER", "FABRIC", "FORGE", "NEOFORGE", "VELOCITY", "BUNGEECORD"] as const;
 export type ServerSoftware = (typeof SERVER_SOFTWARE)[number];
 
+/**
+ * Proxies sit in front of other servers instead of hosting a world: no
+ * server.properties, no world/players of their own, their "version" is the
+ * proxy's own version (not a Minecraft version), and they get a Network tab
+ * to manage the servers behind them.
+ */
+export const PROXY_SOFTWARE: readonly ServerSoftware[] = ["VELOCITY", "BUNGEECORD"];
+
+export function isProxySoftware(software: ServerSoftware): boolean {
+  return PROXY_SOFTWARE.includes(software);
+}
+
+/** Backend software the panel can fully configure for a proxy network (forwarding, online-mode). */
+export const NETWORK_BACKEND_SOFTWARE: readonly ServerSoftware[] = ["PAPER"];
+
 /** Software families that support installing plugins/mods at all. Vanilla does not. */
-export const MODDABLE_SOFTWARE: readonly ServerSoftware[] = ["PAPER", "FABRIC", "FORGE", "NEOFORGE"];
+export const MODDABLE_SOFTWARE: readonly ServerSoftware[] = ["PAPER", "FABRIC", "FORGE", "NEOFORGE", "VELOCITY", "BUNGEECORD"];
 
 /** Maps server software to the Modrinth loader facet used when searching/filtering. */
 export const SOFTWARE_TO_MODRINTH_LOADER: Partial<Record<ServerSoftware, string>> = {
@@ -10,11 +25,13 @@ export const SOFTWARE_TO_MODRINTH_LOADER: Partial<Record<ServerSoftware, string>
   FABRIC: "fabric",
   FORGE: "forge",
   NEOFORGE: "neoforge",
+  VELOCITY: "velocity",
+  BUNGEECORD: "bungeecord",
 };
 
-/** Whether a software family installs "plugins" (Bukkit-style) or "mods". */
+/** Whether a software family installs "plugins" (Bukkit-style, or proxy plugins) or "mods". */
 export function pluginTerminologyFor(software: ServerSoftware): "plugin" | "mod" | "none" {
-  if (software === "PAPER") return "plugin";
+  if (software === "PAPER" || software === "VELOCITY" || software === "BUNGEECORD") return "plugin";
   if (software === "FABRIC" || software === "FORGE" || software === "NEOFORGE") return "mod";
   return "none";
 }

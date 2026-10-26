@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { StatusLabel } from "./StatusBadge";
 import { Sparkline } from "./Sparkline";
 import { ServerIconThumb } from "./ServerIconThumb";
-import { SOFTWARE_META } from "@/lib/softwareMeta";
+import { softwareVersionLabel } from "@/lib/softwareMeta";
 import { useServerRowData } from "./useServerRowData";
 
 const LOAD_COLOR = "hsl(var(--primary))";
@@ -26,7 +26,7 @@ export function ServerCard({ server }: { server: ServerDto }) {
                 {server.name}
               </Link>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {SOFTWARE_META[server.software].label} {server.mcVersion}
+                {softwareVersionLabel(server.software, server.mcVersion)}
               </p>
             </div>
           </div>

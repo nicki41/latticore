@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { Outlet, useParams } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Play, Square, RotateCw, Box, Radio, Clock, Users } from "lucide-react";
+import { Play, Square, RotateCw, Box, Radio, Clock, Users, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusLabel } from "@/components/servers/StatusBadge";
-import { SOFTWARE_META } from "@/lib/softwareMeta";
+import { softwareVersionLabel } from "@/lib/softwareMeta";
 import { useServer, useServerAction, useServerStats } from "@/lib/servers";
-import { useServerConfigFile } from "@/lib/serverConfig";
-import { usePlayers } from "@/lib/players";
 import { usePublicIp } from "@/lib/system";
+import { serverAddressLabel, useServerPlayerSummary } from "@/lib/serverSummary";
 import { serverIconUrl, useServerIconVersion } from "@/lib/serverIcon";
 import { formatUptime } from "@/lib/uptime";
 import { ApiError } from "@/lib/api";
@@ -31,11 +30,8 @@ export default function ServerDetailLayout() {
 
   const isRunning = server?.status === "RUNNING";
   const stats = useServerStats(id, isRunning);
-  const players = usePlayers(id!);
-  const properties = useServerConfigFile(id!, "server-properties");
+  const { onlineCount, maxPlayers } = useServerPlayerSummary(server);
   const publicIp = usePublicIp();
-  const maxPlayers = properties.data?.values["max-players"];
-  const onlineCount = players.data?.players.filter((p) => p.online).length ?? 0;
 
   const busy = start.isPending || stop.isPending || restart.isPending;
 
@@ -89,10 +85,10 @@ export default function ServerDetailLayout() {
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge variant="secondary" className="gap-1">
-              <Box className="h-3 w-3" /> {SOFTWARE_META[server.software].label} {server.mcVersion}
+              <Box className="h-3 w-3" /> {softwareVersionLabel(server.software, server.mcVersion)}
             </Badge>
             <Badge variant="secondary" className="gap-1">
-              <Radio className="h-3 w-3" /> {publicIp.data?.publicIp ? `${publicIp.data.publicIp}:${server.port}` : `Port ${server.port}`}
+              <Radio className="h-3 w-3" /> {serverAddressLabel(server, publicIp.data?.publicIp)}
             </Badge>
             <Badge variant="secondary" className="gap-1">
               <Clock className="h-3 w-3" /> {isRunning ? formatUptime(stats.data?.startedAt ?? null) : "Offline"}
@@ -100,6 +96,18 @@ export default function ServerDetailLayout() {
             <Badge variant="secondary" className="gap-1">
               <Users className="h-3 w-3" /> {isRunning ? onlineCount : "—"} / {typeof maxPlayers === "number" ? maxPlayers : "—"}
             </Badge>
+            {server.network && (
+              <Badge variant="outline" className="gap-1 border-primary/40 text-primary">
+                <Waypoints className="h-3 w-3" />
+                {server.network.proxyName ? (
+                  <Link to={`/servers/${server.network.proxyId}/network`} className="hover:underline">
+                    Behind {server.network.proxyName} as &quot;{server.network.name}&quot;
+                  </Link>
+                ) : (
+                  <>Behind a proxy as &quot;{server.network.name}&quot;</>
+                )}
+              </Badge>
+            )}
           </div>
           {server.status === "ERROR" && server.statusDetail && (
             <p className="text-sm text-destructive">{server.statusDetail}</p>

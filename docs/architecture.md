@@ -9,6 +9,7 @@ This document explains how minecontroller's pieces fit together: the container l
 - [Server creation flow](#server-creation-flow)
 - [Console: attached stdin, not RCON](#console-attached-stdin-not-rcon)
 - [Access control (RBAC)](#access-control-rbac)
+- [Proxy networks](#proxy-networks)
 - [Notifications](#notifications)
 - [Design decisions](#design-decisions)
 
@@ -136,6 +137,15 @@ flowchart TD
 2. **Per-server access level** (`FULL` / `VIEW_ONLY` / no row at all) — narrows just the *server-scoped* subset of a user's role permissions (`servers.*`, `console.*`, `files.*`, `players.*`, `plugins.*`, `backups.*`) down for one specific server. Instance-wide permissions (`users.*`, `roles.*`, `audit.view`, `settings.manage`) are unaffected by server access.
 
 `requireServerAccess` returns `404` (not `403`) when access is denied, so a user without access can't distinguish "this server doesn't exist" from "this server exists but you can't see it." The `/ws/servers/:id` route reuses the same check, plus an explicit `Origin` check — WebSocket upgrades aren't covered by CORS preflight the way `fetch`/XHR are.
+
+## Proxy networks
+
+Velocity and BungeeCord are server types like any other (`VelocityProvider` resolves builds and the Java requirement from PaperMC's Fill API; `BungeeCordProvider` uses SpigotMC's Jenkins — which publishes no checksum for the bootstrap jar, so that download relies on HTTPS from the allowlisted host). What makes them different:
+
+- **Data model**: `ServerNetworkMember` (proxy, backend, name, priority) — a backend belongs to at most one network — and `Server.exposePort`, false for backends so `DockerMinecraftRuntime` leaves the game port unpublished. Inside every container the game port is 25565; the proxy reaches a backend at `<containerName>:25565` over `mc_net`.
+- **Config files** (`minecraft/proxy/proxyConfig.ts`): pure file editing. Velocity's `velocity.toml` is patched line-wise — only `bind`, the forwarding keys and the `[servers]`/`[forced-hosts]` tables are rewritten, every other line and comment survives; a fresh proxy starts from the `default-velocity.toml` inside its own jar. BungeeCord's `config.yml` and the Paper backend files are edited through the `yaml` Document API (comments preserved). BungeeCord refuses to start with zero servers, so an empty network gets an unreachable placeholder entry.
+- **NetworkService** (`modules/network/`): the DB is the source of truth; add/remove/reorder write the proxy config and the backend's forwarding settings, then reload a running proxy (`velocity reload`, or `greload` for additions only — BungeeCord can't drop a server on reload). It re-checks that the viewer may edit the *backend* too, since adding it reconfigures that server.
+- **Lifecycle**: proxies get no `server.properties`, their own ready lines (Velocity `Done (…s)!`, BungeeCord `Listening on /…`), no player tracking (players are recorded on the backends), and their player count comes from `glist`.
 
 ## Notifications
 
