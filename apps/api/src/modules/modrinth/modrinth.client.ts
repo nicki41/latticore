@@ -1,7 +1,7 @@
 import { httpFetchJson } from "../../lib/httpFetch.js";
 import { createTtlCache } from "../../lib/ttlCache.js";
 import { env } from "../../config/env.js";
-import type { ModrinthGameVersion, ModrinthProject, ModrinthSearchResponse, ModrinthVersion } from "@minecraftpanel/shared";
+import type { ModrinthCollection, ModrinthGameVersion, ModrinthProject, ModrinthSearchResponse, ModrinthVersion } from "@minecraftpanel/shared";
 
 const GAME_VERSIONS_TTL_MS = 60 * 60 * 1000; // Modrinth's version list changes at most a few times a month
 
@@ -70,5 +70,24 @@ export class ModrinthClient {
   /** Full official Minecraft version list Modrinth knows about, newest first — backs the game-version filter checkboxes. */
   async getGameVersions(): Promise<ModrinthGameVersion[]> {
     return this.gameVersionsCache();
+  }
+
+  /** Collections only exist on Modrinth's v3 API; everything else here is v2. */
+  async getCollection(collectionId: string): Promise<ModrinthCollection> {
+    const v3Base = this.baseUrl.replace(/\/v2\/?$/, "/v3");
+    return httpFetchJson<ModrinthCollection>(`${v3Base}/collection/${encodeURIComponent(collectionId)}`, this.userAgent);
+  }
+
+  async getUsername(userId: string): Promise<string> {
+    const user = await httpFetchJson<{ username: string }>(`${this.baseUrl}/user/${encodeURIComponent(userId)}`, this.userAgent);
+    return user.username;
+  }
+
+  /** Bulk lookup; projects that are private, draft or unlisted are simply absent from the result. */
+  async getProjects(ids: string[]): Promise<ModrinthProject[]> {
+    if (ids.length === 0) return [];
+    const url = new URL(`${this.baseUrl}/projects`);
+    url.searchParams.set("ids", JSON.stringify(ids));
+    return httpFetchJson<ModrinthProject[]>(url.toString(), this.userAgent);
   }
 }

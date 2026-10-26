@@ -9,3 +9,10 @@ export function formatBytes(bytes: number): string {
 export function formatMb(mb: number): string {
   return formatBytes(mb * 1024 * 1024);
 }
+
+/** 1234 → "1.2K", 3_400_000 → "3.4M" — download counts and similar. */
+export function formatCompactNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}

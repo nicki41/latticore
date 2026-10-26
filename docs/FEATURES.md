@@ -64,6 +64,8 @@ Playtime, session history, last-seen, and last-known IP per player, tracked from
 
 Search and install plugins/mods straight from the panel, matched automatically to the server's actual loader (Paper/Fabric/...) and Minecraft version — no manually hunting for a compatible build.
 
+[UniversalAdmin](https://modrinth.com/collection/DrMT8zro) — a free all-in-one admin plugin for Paper and Velocity networks, with its official extensions — is recommended at the top of both the Modrinth page and a server's Plugins tab (only where the server can load it), installable in one click. The list is loaded live from the Modrinth collection, so new extensions show up without a panel update.
+
 ![Modrinth browser](assets/screenshots/modrinth-browse.png)
 
 ## Backups

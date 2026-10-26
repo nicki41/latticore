@@ -6,12 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { modrinthTypeLabel } from "@/lib/modrinthDisplay";
-
-function formatDownloads(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
+import { formatCompactNumber } from "@/lib/format";
 
 interface ModrinthResultCardAction {
   label: string;
@@ -81,7 +76,7 @@ export function ModrinthResultCard({ hit, action, installed, compatibleWith }: M
         )}
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Download className="h-3 w-3" /> {formatDownloads(hit.downloads)}
+            <Download className="h-3 w-3" /> {formatCompactNumber(hit.downloads)}
           </span>
           <Button size="sm" variant={action.variant ?? "outline"} onClick={action.onClick} disabled={action.disabled || action.loading}>
             {ActionIcon && <ActionIcon className="h-3.5 w-3.5" />}

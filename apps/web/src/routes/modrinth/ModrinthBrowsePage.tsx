@@ -5,7 +5,8 @@ import { EmptyState } from "@/components/layout/EmptyState";
 import { ModrinthResultCard } from "@/components/modrinth/ModrinthResultCard";
 import { ModrinthFilterBar } from "@/components/modrinth/ModrinthFilterBar";
 import { ModrinthPagination } from "@/components/modrinth/ModrinthPagination";
-import { useModrinthSearch } from "@/lib/modrinth";
+import { FeaturedCollectionCard } from "@/components/modrinth/FeaturedCollectionCard";
+import { useFeaturedCollection, useModrinthSearch } from "@/lib/modrinth";
 import { resolveTypeFilter, type TypeFilterValue } from "@/lib/modrinthDisplay";
 
 const PAGE_SIZE = 24;
@@ -34,6 +35,7 @@ export default function ModrinthBrowsePage() {
     };
   }
 
+  const featured = useFeaturedCollection().data?.featured;
   const total = search.data?.total_hits ?? 0;
 
   return (
@@ -47,6 +49,8 @@ export default function ModrinthBrowsePage() {
         <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <p>To install something, open a server&apos;s Plugins tab — installs are matched to that server&apos;s software and Minecraft version.</p>
       </div>
+
+      {featured && <FeaturedCollectionCard featured={featured} />}
 
       <ModrinthFilterBar
         query={query}

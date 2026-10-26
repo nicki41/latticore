@@ -22,7 +22,7 @@ A self-hosted management panel for multiple Minecraft servers. Each server runs 
 - **Dashboard** — every server at a glance: status, uptime, players/slots, ip:port, version, and a live load sparkline
 - **Live attached console** — real stdin/stdout, not a third-party RCON wrapper
 - **File manager** with a Monaco (VS Code) editor
-- **Modrinth integration** — search and install plugins/mods straight from the panel
+- **Modrinth integration** — search and install plugins/mods straight from the panel, with [UniversalAdmin](https://modrinth.com/collection/DrMT8zro) (free all-in-one admin plugin for Paper and Velocity networks) recommended up front
 - **Port allocations** — open extra ports per server (voice chat, a web map, Geyser, ...) from one place, with automatic no-duplicates enforcement
 - **Player management** — whitelist / op / kick / ban, playtime and session history
 - **Multi-user RBAC** — role-based *and* per-server access control (view-only vs. full)
