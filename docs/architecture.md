@@ -68,7 +68,7 @@ Inside `apps/api/src`:
 | Path | Responsibility |
 |---|---|
 | `modules/<feature>/` | One folder per feature (servers, files, players, roles, users, audit, backups, modrinth, ...), each split into `*.routes.ts` (HTTP handlers + permission checks) and `*.service.ts` (business logic) |
-| `plugins/` | Fastify plugins: `prisma.ts` (SQLite connection, WAL mode), `auth.ts` (session + RBAC decorators), `minecraft.ts` (wires the server manager), `liveSessions.ts`, `metricsHistory.ts` |
+| `plugins/` | Fastify plugins that wire the services up: `prisma.ts` (SQLite connection, WAL mode), `auth.ts` (session + RBAC decorators), `minecraft.ts` (the server manager), `backups.ts`, `scheduler.ts`, `network.ts` (proxy networks), `notifications.ts`, `playerActivity.ts`, `liveSessions.ts`, `metricsHistory.ts`, `audit.ts` |
 | `minecraft/` | The Docker orchestration layer — install pipeline, container lifecycle, console (attach + legacy RCON) — see below |
 | `ws/` | One multiplexed live session per server, backing `/ws/servers/:id` |
 | `lib/` | Cross-cutting utilities: safe path resolution, typed errors, 2FA crypto, `server.properties` codec |

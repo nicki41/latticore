@@ -112,6 +112,6 @@ flowchart LR
 ## Still open
 
 - **Fabric/Forge backends in networks** — need a proxy-forwarding mod (FabricProxy-Lite, Proxy-Compatible-Forge) installed and configured; the panel could do that through the Modrinth integration.
-
+- **Prisma 7 and Tailwind CSS 4** — both majors need a real migration (Prisma: `prisma.config.ts` and a SQLite driver adapter; Tailwind: the new PostCSS plugin and CSS-based theme config), so Dependabot ignores them until then.
 - **Legacy (itzg/RCON) runtime** — remove once no servers use it.
 - Exact list of Steam games in the first wave.

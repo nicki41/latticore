@@ -15,11 +15,9 @@ A self-hosted panel for Minecraft servers and the proxy networks that tie them t
 
 > **Latticore was called *minecontroller* until October 2026.** The GitHub repository and the published Docker image names still use the old name for now, so existing installs keep updating — nothing to change on your side.
 
-![Dashboard with three servers](docs/assets/screenshots/dashboard.png)
-
 **Features:**
 
-- **Creation wizard** — Vanilla, Paper, Fabric, Forge (1.7.10 → today) and NeoForge, each installed and hash-verified by the panel itself (see [docs/architecture.md](docs/architecture.md#server-creation-flow))
+- **Creation wizard** — Vanilla, Paper, Fabric, Forge (1.7.10 → today) and NeoForge, plus Velocity and BungeeCord proxies, each installed and hash-verified by the panel itself (see [docs/architecture.md](docs/architecture.md#server-creation-flow))
 - **Reinstall / change version** — pick up the newest build, or switch Minecraft versions, without touching worlds, configs or mods
 - **Proxy networks** — Velocity and BungeeCord servers with a Network tab: add any Paper server in one click and the panel sets up forwarding, the shared secret, online-mode and the proxy's server list, and takes the backend's port off the internet so nobody can join around the proxy; a Networks page shows every proxy with the servers behind it
 - **Dashboard** — every server at a glance: status, uptime, players/slots, ip:port, version, and a live load sparkline
@@ -36,7 +34,7 @@ A self-hosted panel for Minecraft servers and the proxy networks that tie them t
 - **Notifications** — web push (per user, zero-config VAPID) and external channels (Discord/Telegram/Slack/webhook, per server)
 - **Installable PWA** — add it to your home screen on iOS/Android or install it as a desktop app; fully responsive down to phone width
 
-A complete tour with screenshots of every feature is in **[docs/FEATURES.md](docs/FEATURES.md)**.
+A tour of every feature is in **[docs/FEATURES.md](docs/FEATURES.md)**.
 
 ## Table of contents
 
@@ -50,7 +48,6 @@ A complete tour with screenshots of every feature is in **[docs/FEATURES.md](doc
   - [3. Create your first server](#3-create-your-first-server)
   - [4. Connect from Minecraft](#4-connect-from-minecraft)
   - [5. Optional next steps](#5-optional-next-steps)
-- [Features & screenshots](#features--screenshots)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -154,6 +151,7 @@ The sidebar on the left is where everything else lives:
 |---|---|
 | **Dashboard** | This overview page |
 | **All Servers** | Expand it in place for a quick jump list, or click through to the full page |
+| **Networks** | Every proxy with the servers behind it — see [docs/operations.md#proxy-networks](docs/operations.md#proxy-networks) |
 | **Allocations** | Open extra ports on any server — see [docs/operations.md#port-allocations](docs/operations.md#port-allocations) |
 | **Create Server** | The creation wizard (below) |
 | **Modrinth** | Search and install plugins/mods |
@@ -165,13 +163,11 @@ The sidebar on the left is where everything else lives:
 Click **Create Server** and work through the wizard:
 
 1. **Name** — a name and optional description.
-2. **Software** — Vanilla, Paper, Fabric, Forge or NeoForge.
+2. **Software** — Vanilla, Paper, Fabric, Forge or NeoForge, or a Velocity/BungeeCord proxy.
 3. **Version** — fetched live from that software's own metadata API, newest first.
 4. **Resources** — RAM and CPU limits; an optional disk limit.
 5. **Port** — leave it automatic (assigned from the configured range) or pick one explicitly.
 6. **Confirm** — review everything, then explicitly accept Mojang's EULA; the panel refuses to boot a server otherwise, matching the real-world legal requirement, and never accepts it on your behalf.
-
-<p align="center"><img src="docs/assets/screenshots/wizard-confirm.png" alt="Create Server wizard, confirm step" width="600"></p>
 
 Submitting takes you straight to the new server's **Console** tab, where you can watch it move through `CREATING` → `INSTALLING` (downloading and verifying the actual server jar — nothing pre-baked into an image) → `STARTING` → `RUNNING`. First boot is the slowest step (world generation); everything after is normal Minecraft startup time.
 
@@ -191,20 +187,11 @@ Need more than the one game port — a Dynmap/BlueMap web view, a voice-chat plu
 
 For everything after this first run — adding more admins, backup strategy, updating the panel, and troubleshooting — see **[docs/operations.md](docs/operations.md)**.
 
-## Features & screenshots
-
-A screenshot of every feature — the console, file manager, players, Modrinth browser, scheduler, notifications, RBAC/admin pages, 2FA setup, and the mobile view — lives in **[docs/FEATURES.md](docs/FEATURES.md)**.
-
-<p align="center">
-  <img src="docs/assets/screenshots/server-files-editor.png" alt="File manager with server.properties open in the Monaco editor" width="49%">
-  <img src="docs/assets/screenshots/server-players.png" alt="Players tab with playtime and last-seen" width="49%">
-</p>
-
 ## Documentation
 
 | Doc | Covers |
 |---|---|
-| [docs/FEATURES.md](docs/FEATURES.md) | Full feature tour with screenshots |
+| [docs/FEATURES.md](docs/FEATURES.md) | Tour of every feature |
 | [docs/architecture.md](docs/architecture.md) | Component diagram, server-creation sequence, RBAC model, directory layout, design decisions |
 | [docs/configuration.md](docs/configuration.md) | Full `.env` reference, the `HOST_DATA_PATH` sibling-container problem |
 | [docs/operations.md](docs/operations.md) | First admin account, backups, updates, troubleshooting |

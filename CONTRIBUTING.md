@@ -26,6 +26,7 @@ npm ci
 npm run typecheck
 npm run lint
 npm test
+npm run build
 ```
 
 All of these also run in CI (`.github/workflows/ci.yml`) on every pull request.
@@ -36,7 +37,8 @@ All of these also run in CI (`.github/workflows/ci.yml`) on every pull request.
 - Explain the *why* in the PR description, not just the *what*.
 - Add or update tests for behavior you change.
 - Update the relevant page under `docs/` if the change affects configuration, architecture, or operations.
-- If the change adds, removes, or visibly reshapes a feature, update [docs/FEATURES.md](docs/FEATURES.md) — including its screenshot(s) if the UI changed. Take screenshots against a local/demo instance seeded with placeholder data, never a real deployment; the panel shows the host's real public IP next to a server's port (`apps/api/src/lib/publicIp.ts`), so double-check that doesn't end up in an image before committing it.
+- If the change adds, removes, or visibly reshapes a feature, update [docs/FEATURES.md](docs/FEATURES.md).
+- Screenshots of the UI belong in the PR description, not the repository. Take them against a local/demo instance with placeholder data, never a real deployment — the panel shows the host's real public IP next to a server's port (`apps/api/src/lib/publicIp.ts`).
 
 ## Reporting bugs / requesting features
 
