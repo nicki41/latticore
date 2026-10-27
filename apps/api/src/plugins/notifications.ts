@@ -1,6 +1,6 @@
 import fp from "fastify-plugin";
 import type { FastifyInstance } from "fastify";
-import type { ServerStatus } from "@minecraftpanel/shared";
+import type { ServerStatus } from "@latticore/shared";
 import { NotificationDispatcherService } from "../modules/notifications/notificationDispatcher.service.js";
 import { PerformanceChecker } from "../modules/notifications/performanceChecker.js";
 import { UpdateChecker } from "../modules/notifications/updateChecker.js";

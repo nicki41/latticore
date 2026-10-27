@@ -6,7 +6,7 @@ import type {
   UpdateNotificationPreferenceInput,
   CreateNotificationChannelInput,
   UpdateNotificationChannelInput,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { api, ApiError } from "./api";
 
 export function useNotificationPreferences(serverId: string) {

@@ -1,4 +1,4 @@
-import type { ServerSoftware } from "@minecraftpanel/shared";
+import type { ServerSoftware } from "@latticore/shared";
 
 export interface ProviderVersion {
   id: string;

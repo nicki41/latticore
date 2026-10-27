@@ -69,8 +69,8 @@ describe("assertNoSymlinkEscape / safeResolve", () => {
   let outsideDir: string;
 
   beforeEach(async () => {
-    tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-safepath-root-"));
-    outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-safepath-outside-"));
+    tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-safepath-root-"));
+    outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-safepath-outside-"));
   });
 
   afterEach(async () => {

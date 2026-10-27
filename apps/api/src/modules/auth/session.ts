@@ -2,11 +2,13 @@ import crypto from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { env } from "../../config/env.js";
 
-export const SESSION_COOKIE_NAME = "mcpanel_session";
+export const SESSION_COOKIE_NAME = "latticore_session";
+/** The session cookie's name before the rename — still accepted, so an update doesn't sign everyone out. */
+const LEGACY_SESSION_COOKIE_NAME = "mcpanel_session";
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const REFRESH_THRESHOLD_MS = 15 * 24 * 60 * 60 * 1000; // extend once half-consumed
 
-export const PENDING_2FA_COOKIE_NAME = "mcpanel_pending_2fa";
+export const PENDING_2FA_COOKIE_NAME = "latticore_pending_2fa";
 const PENDING_2FA_TTL_MS = 5 * 60 * 1000;
 
 export function generateSessionToken(): string {
@@ -39,11 +41,12 @@ export function setSessionCookie(reply: FastifyReply, token: string): void {
 
 export function clearSessionCookie(reply: FastifyReply): void {
   reply.clearCookie(SESSION_COOKIE_NAME, { path: "/" });
+  reply.clearCookie(LEGACY_SESSION_COOKIE_NAME, { path: "/" });
 }
 
 /** Returns the raw (unhashed) session token from the request's signed cookie, or null if absent/tampered. */
 export function readSessionToken(request: FastifyRequest): string | null {
-  const raw = request.cookies[SESSION_COOKIE_NAME];
+  const raw = request.cookies[SESSION_COOKIE_NAME] ?? request.cookies[LEGACY_SESSION_COOKIE_NAME];
   if (!raw) return null;
   const unsigned = request.unsignCookie(raw);
   return unsigned.valid && unsigned.value ? unsigned.value : null;

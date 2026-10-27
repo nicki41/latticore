@@ -23,7 +23,7 @@ declare global {
 
 const { ServerInstaller, buildLaunchScript, detectLaunchTarget, heapSizeMb } = await import("./ServerInstaller.js");
 
-const server = { id: "srv1", dataDir: "servers/srv1", memoryMb: 4096, containerName: "mcpanel-test-abcd1234" };
+const server = { id: "srv1", dataDir: "servers/srv1", memoryMb: 4096, containerName: "latticore-test-abcd1234" };
 
 /** What a Forge 1.17+/NeoForge installer leaves behind (layout taken from the real installers' data/run.sh templates). */
 async function writeModernForgeOutput(root: string, argsFile = "libraries/net/minecraftforge/forge/1.20.1-47.4.0/unix_args.txt") {
@@ -38,7 +38,7 @@ describe("ServerInstaller", () => {
   let root: string;
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-installer-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-installer-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     root = path.join(tmpDataPath, server.dataDir);
     downloadMock.mockClear();
@@ -85,7 +85,7 @@ describe("ServerInstaller", () => {
       expect(runInstaller).toHaveBeenCalledWith(
         expect.objectContaining({
           serverId: "srv1",
-          containerName: "mcpanel-test-abcd1234-installer",
+          containerName: "latticore-test-abcd1234-installer",
           javaImageTag: "runtime:java17",
           javaArgs: [`-Xmx${heapSizeMb(4096)}M`, "-jar", "forge-1.20.1-47.4.0-installer.jar", "--installServer"],
         }),

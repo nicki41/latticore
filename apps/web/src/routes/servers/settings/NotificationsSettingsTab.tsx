@@ -1,4 +1,4 @@
-import type { ServerDto } from "@minecraftpanel/shared";
+import type { ServerDto } from "@latticore/shared";
 import { PushNotificationsSection } from "./PushNotificationsSection";
 import { ExternalChannelsSection } from "./ExternalChannelsSection";
 

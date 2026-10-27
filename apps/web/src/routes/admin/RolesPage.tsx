@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { PlusCircle, ShieldCheck, Trash2 } from "lucide-react";
-import type { Permission, RoleDto } from "@minecraftpanel/shared";
+import type { Permission, RoleDto } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

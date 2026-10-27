@@ -12,7 +12,7 @@ export default defineConfig({
       NODE_ENV: "test",
       DATABASE_URL: "file:./test-dummy.db",
       SESSION_SECRET: "test-session-secret-not-for-production-use-0000",
-      HOST_DATA_PATH: "/tmp/minecraftpanel-test-data",
+      HOST_DATA_PATH: "/tmp/latticore-test-data",
       COOKIE_SECURE: "false",
     },
   },

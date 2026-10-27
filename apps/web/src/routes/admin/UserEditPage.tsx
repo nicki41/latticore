@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { ChevronLeft, Trash2 } from "lucide-react";
-import type { AccessLevel } from "@minecraftpanel/shared";
+import type { AccessLevel } from "@latticore/shared";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

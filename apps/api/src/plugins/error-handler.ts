@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import type { FastifyInstance, FastifyError } from "fastify";
 import { ZodError } from "zod";
-import type { ApiErrorBody } from "@minecraftpanel/shared";
+import type { ApiErrorBody } from "@latticore/shared";
 import { AppError } from "../lib/errors.js";
 
 /**

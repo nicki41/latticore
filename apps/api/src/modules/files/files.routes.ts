@@ -4,7 +4,7 @@ import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import mime from "mime-types";
 import { z } from "zod";
-import { createFileEntrySchema, moveFileSchema, copyFileSchema, writeFileContentSchema, extractZipSchema } from "@minecraftpanel/shared";
+import { createFileEntrySchema, moveFileSchema, copyFileSchema, writeFileContentSchema, extractZipSchema } from "@latticore/shared";
 import type { FastifyInstance } from "fastify";
 import { FileService } from "./files.service.js";
 import { safeResolve, isRootPath } from "../../lib/safePath.js";

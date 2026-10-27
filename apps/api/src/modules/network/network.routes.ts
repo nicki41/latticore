@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { addNetworkBackendSchema, reorderNetworkSchema } from "@minecraftpanel/shared";
+import { addNetworkBackendSchema, reorderNetworkSchema } from "@latticore/shared";
 import { AuditAction } from "../audit/audit.service.js";
 
 /**

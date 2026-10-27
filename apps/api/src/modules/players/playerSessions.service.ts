@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import type { PlayerSessionSummaryDto, PlayerSessionsRange } from "@minecraftpanel/shared";
+import type { PlayerSessionSummaryDto, PlayerSessionsRange } from "@latticore/shared";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

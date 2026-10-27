@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { createRoleSchema, updateRoleSchema } from "@minecraftpanel/shared";
+import { createRoleSchema, updateRoleSchema } from "@latticore/shared";
 import { RoleService } from "./roles.service.js";
 import { AuditAction } from "../audit/audit.service.js";
 

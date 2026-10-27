@@ -1,4 +1,4 @@
-import type { ServerSoftware } from "@minecraftpanel/shared";
+import type { ServerSoftware } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { VanillaProvider } from "./VanillaProvider.js";
 import { PaperProvider } from "./PaperProvider.js";

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Blocks, ExternalLink, MoreHorizontal, Pause, Play, Trash2 } from "lucide-react";
-import type { InstalledPluginDto, ServerDto } from "@minecraftpanel/shared";
-import { pluginTerminologyFor } from "@minecraftpanel/shared";
+import type { InstalledPluginDto, ServerDto } from "@latticore/shared";
+import { pluginTerminologyFor } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

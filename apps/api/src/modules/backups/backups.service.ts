@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import * as tar from "tar";
 import type { PrismaClient, Server } from "@prisma/client";
-import type { BackupDto, BackupSettingsDto } from "@minecraftpanel/shared";
+import type { BackupDto, BackupSettingsDto } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { BadRequestError, ConflictError, NotFoundError } from "../../lib/errors.js";

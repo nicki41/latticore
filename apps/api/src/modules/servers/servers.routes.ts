@@ -13,7 +13,7 @@ import {
   SERVER_SOFTWARE,
   type AccessLevel,
   type ServerStatsDto,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { AuditAction } from "../audit/audit.service.js";
 import { serializeServer } from "./servers.serialize.js";
 import { BadRequestError, NotFoundError } from "../../lib/errors.js";

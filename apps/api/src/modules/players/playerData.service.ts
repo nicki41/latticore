@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import nbt from "prismarine-nbt";
 import type { PrismaClient, Server } from "@prisma/client";
-import type { PlayerGamemode, PlayerGamemodeDto, PlayerStatsDto } from "@minecraftpanel/shared";
+import type { PlayerGamemode, PlayerGamemodeDto, PlayerStatsDto } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { safeResolve } from "../../lib/safePath.js";
 import { PropertiesDocument } from "../../lib/propertiesCodec.js";

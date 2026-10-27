@@ -5,7 +5,7 @@ import type {
   SchedulerRunDto,
   SchedulerWorkflowDto,
   UpdateWorkflowInput,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { api } from "./api";
 
 export function useWorkflows(serverId: string) {

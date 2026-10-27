@@ -1,5 +1,5 @@
 import type { PrismaClient, Server } from "@prisma/client";
-import type { PlayerBanDto } from "@minecraftpanel/shared";
+import type { PlayerBanDto } from "@latticore/shared";
 import type { MinecraftServerManager } from "../../minecraft/MinecraftServerManager.js";
 import { assertValidUsername, sanitizeReason } from "./players.service.js";
 import { addBannedPlayerEntry, addBannedIpEntry, removeBannedIpEntry } from "./playerFileEdits.service.js";

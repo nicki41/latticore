@@ -69,7 +69,7 @@ describe("BackupService", () => {
   let dataDir: string;
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-backups-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-backups-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     dataDir = path.join(tmpDataPath, server.dataDir);
     await fs.mkdir(path.join(dataDir, "world"), { recursive: true });

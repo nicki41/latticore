@@ -2,7 +2,7 @@ import { hash as argonHash, verify as argonVerify } from "@node-rs/argon2";
 import { TOTP, Secret } from "otpauth";
 import QRCode from "qrcode";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { PERMISSIONS, SYSTEM_ROLES, type ChangePasswordInput, type LoginInput, type Permission, type SetupAdminInput } from "@minecraftpanel/shared";
+import { PERMISSIONS, SYSTEM_ROLES, type ChangePasswordInput, type LoginInput, type Permission, type SetupAdminInput } from "@latticore/shared";
 import { ConflictError, ForbiddenError, UnauthenticatedError } from "../../lib/errors.js";
 import { decryptTotpSecret, encryptTotpSecret } from "../../lib/totpCrypto.js";
 import { generateRecoveryCodes, hashRecoveryCode } from "../../lib/recoveryCodes.js";
@@ -13,7 +13,7 @@ import {
   shouldRefreshSession,
 } from "./session.js";
 
-const TOTP_ISSUER = "minecraftpanel";
+const TOTP_ISSUER = "Latticore";
 
 export interface AuthenticatedUser {
   id: string;

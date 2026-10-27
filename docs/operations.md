@@ -11,6 +11,7 @@ Day-to-day running of the panel: first admin setup, backups, updates, and troubl
 - [Proxy networks](#proxy-networks)
 - [Installing the panel as an app (PWA)](#installing-the-panel-as-an-app-pwa)
 - [Updates](#updates)
+  - [Coming from minecontroller](#coming-from-minecontroller)
 - [Troubleshooting](#troubleshooting)
 
 ## First admin account
@@ -73,7 +74,7 @@ On the proxy it owns `bind`, the forwarding mode and the `[servers]`/`[forced-ho
 
 Removing a server from the network, or deleting the proxy, returns every affected backend to standalone (online-mode back on, port published again on its next start). Deleting a backend removes it from the proxy's list.
 
-**Why the backend's port is hidden**: with `online-mode=false` a backend trusts whatever identity the proxy forwards. With BungeeCord's IP forwarding anyone who reaches the backend directly could claim to be any player — so backends in a network are only reachable from the proxy, over the Docker network (`mcpanel-<name>:25565` inside the proxy container).
+**Why the backend's port is hidden**: with `online-mode=false` a backend trusts whatever identity the proxy forwards. With BungeeCord's IP forwarding anyone who reaches the backend directly could claim to be any player — so backends in a network are only reachable from the proxy, over the Docker network (`<container name>:25565` inside the proxy container).
 
 ## Installing the panel as an app (PWA)
 
@@ -94,6 +95,22 @@ docker compose up -d
 That's it — no `git clone`/`git pull` needed for a normal deployment, since `docker-compose.yml` and `.env` are the only files a deployment actually needs, and `api` is pulled pre-built from GHCR. (Building from source instead, e.g. for local development? See [CONTRIBUTING.md](../CONTRIBUTING.md).)
 
 Database migrations are applied automatically when the api container starts, via `prisma migrate deploy` (see [`docker/entrypoint.sh`](../docker/entrypoint.sh)) — no manual migration step needed. Running Minecraft server containers are unaffected by a panel update, since they're independent containers.
+
+### Coming from minecontroller
+
+Latticore was called *minecontroller* until October 2026. An install set up back then keeps working exactly as it is: every image is still published under its old name too (`ghcr.io/nicki41/minecontroller`, `ghcr.io/nicki41/minecontroller-runtime`), so the usual `docker compose pull && docker compose up -d` keeps updating it — servers, sign-ins and 2FA included.
+
+Switching to the new names is optional, whenever convenient:
+
+1. In `docker-compose.yml`, set the image to `ghcr.io/nicki41/latticore:latest` (or download the current file, see below).
+2. In `.env`, set `RUNTIME_IMAGE_BASE=ghcr.io/nicki41/latticore-runtime`, or delete the line. Existing servers move to the new runtime image on their next start.
+3. `docker compose up -d`.
+
+Downloading the current `docker-compose.yml` instead of editing yours? Three things changed in it:
+
+- The panel container is called `latticore` (was `minecraftpanel-api`) — update a reverse proxy that reaches it by name.
+- `MINECRAFT_NETWORK` defaults to `latticore_mc_net`. If your `.env` sets it (the old `.env.example` did), nothing changes. If not, add `MINECRAFT_NETWORK=minecraftpanel_mc_net` to stay on the existing network — or restart every server once after the update, so a proxy and its backends end up on the new network together.
+- An image pinned with `MINECRAFTPANEL_IMAGE` is now set with `LATTICORE_IMAGE`.
 
 ## Troubleshooting
 

@@ -28,7 +28,7 @@ Robust lifecycle (no stuck statuses, boot recovery), Forge/NeoForge, reinstall/v
 
 ## Phase 1 — Rebrand to Latticore, proxy networks (done)
 
-- Name, logo, favicon/PWA icons, splash, manifest and docs are Latticore. Still open: renaming the GitHub repository and the Docker image names — with the old image names kept publishing for a transition period so existing installs keep updating.
+- Name, logo, favicon/PWA icons, splash, manifest, docs, GitHub repository (`nicki41/latticore`) and Docker images are Latticore. The images are still published under their old names too, so installs from before the rename keep updating unchanged.
 - Velocity and BungeeCord as server types, with one-click networks (forwarding, secret, online-mode and port hiding done automatically) and a Networks overview.
 - UniversalAdmin recommended on the Modrinth and Plugins pages.
 
@@ -112,6 +112,6 @@ flowchart LR
 ## Still open
 
 - **Fabric/Forge backends in networks** — need a proxy-forwarding mod (FabricProxy-Lite, Proxy-Compatible-Forge) installed and configured; the panel could do that through the Modrinth integration.
-
+- **Prisma 7 and Tailwind CSS 4** — both majors need a real migration (Prisma: `prisma.config.ts` and a SQLite driver adapter; Tailwind: the new PostCSS plugin and CSS-based theme config), so Dependabot ignores them until then.
 - **Legacy (itzg/RCON) runtime** — remove once no servers use it.
 - Exact list of Steam games in the first wave.

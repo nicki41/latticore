@@ -6,7 +6,7 @@ import {
   loginSchema,
   setupAdminSchema,
   verifyTotpLoginSchema,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { AuditAction } from "../audit/audit.service.js";
 import { toAuthenticatedUser, type AuthenticatedUser } from "./auth.service.js";
 import {

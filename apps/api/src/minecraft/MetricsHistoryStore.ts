@@ -1,4 +1,4 @@
-import type { MetricsRange, MetricsSampleDto } from "@minecraftpanel/shared";
+import type { MetricsRange, MetricsSampleDto } from "@latticore/shared";
 
 const RANGE_MS: Record<MetricsRange, number> = {
   "5m": 5 * 60_000,

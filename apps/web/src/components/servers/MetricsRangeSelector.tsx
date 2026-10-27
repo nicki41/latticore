@@ -1,4 +1,4 @@
-import type { MetricsRange } from "@minecraftpanel/shared";
+import type { MetricsRange } from "@latticore/shared";
 import { cn } from "@/lib/utils";
 
 const RANGES: { value: MetricsRange; label: string }[] = [

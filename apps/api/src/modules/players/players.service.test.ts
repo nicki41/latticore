@@ -58,7 +58,7 @@ function makeServer(overrides: Partial<Server> = {}): Server {
     mcVersion: "1.21.1",
     buildVersion: null,
     containerId: "abc",
-    containerName: "mcpanel-test",
+    containerName: "latticore-test",
     port: 25565,
     memoryMb: 2048,
     cpuCores: 2,
@@ -78,7 +78,7 @@ describe("PlayerService", () => {
   let tmpDataPath: string;
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-players-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-players-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     await fs.mkdir(path.join(tmpDataPath, "server1"), { recursive: true });
   });

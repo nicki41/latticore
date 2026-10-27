@@ -1,4 +1,4 @@
-import type { ServerStatus } from "@minecraftpanel/shared";
+import type { ServerStatus } from "@latticore/shared";
 import { cn } from "@/lib/utils";
 
 const STATUS_CONFIG: Record<ServerStatus, { label: string; color: string; pulse?: boolean }> = {

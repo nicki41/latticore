@@ -14,7 +14,7 @@ import {
   Archive,
   Loader2,
 } from "lucide-react";
-import type { FileEntryDto } from "@minecraftpanel/shared";
+import type { FileEntryDto } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

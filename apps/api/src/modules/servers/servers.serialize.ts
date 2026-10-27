@@ -1,5 +1,5 @@
 import type { Server, ServerAllocation } from "@prisma/client";
-import type { AccessLevel, NetworkMembershipDto, ServerDto, ServerRuntime, ServerSoftware, ServerStatus } from "@minecraftpanel/shared";
+import type { AccessLevel, NetworkMembershipDto, ServerDto, ServerRuntime, ServerSoftware, ServerStatus } from "@latticore/shared";
 
 // SQLite has no native enum type, so Server.software/status are plain
 // strings at the Prisma layer; validity is enforced at write time via Zod

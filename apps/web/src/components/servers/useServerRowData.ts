@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
-import type { ServerDto } from "@minecraftpanel/shared";
+import type { ServerDto } from "@latticore/shared";
 import { useServerAction, useServerStats } from "@/lib/servers";
 import { useMetricsHistory } from "@/lib/metricsHistory";
 import { usePublicIp } from "@/lib/system";

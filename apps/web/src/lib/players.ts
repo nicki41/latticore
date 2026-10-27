@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 import { api } from "./api";
 
 export function usePlayers(serverId: string, enabled = true) {

@@ -7,7 +7,7 @@ import type {
   ModrinthProject,
   ModrinthSearchResponse,
   ModrinthVersion,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { api } from "./api";
 
 export interface ModrinthSearchParams {

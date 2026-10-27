@@ -1,4 +1,4 @@
-import type { ServerSoftware } from "@minecraftpanel/shared";
+import type { ServerSoftware } from "@latticore/shared";
 
 export const SOFTWARE_META: Record<ServerSoftware, { label: string; description: string; /** What the version list holds — proxies aren't versioned by Minecraft version. */ versionLabel: string }> = {
   VANILLA: { label: "Vanilla", description: "Official Mojang server. No plugin or mod support.", versionLabel: "Minecraft version" },

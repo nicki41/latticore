@@ -1,4 +1,4 @@
-import type { NotificationChannelType } from "@minecraftpanel/shared";
+import type { NotificationChannelType } from "@latticore/shared";
 import type { NotificationPayload } from "./types.js";
 import { send as sendDiscord } from "./discord.js";
 import { send as sendSlack } from "./slack.js";

@@ -1,5 +1,5 @@
 import { useQueries } from "@tanstack/react-query";
-import type { ServerDto, ServerStatsDto, PlayerDto } from "@minecraftpanel/shared";
+import type { ServerDto, ServerStatsDto, PlayerDto } from "@latticore/shared";
 import { api } from "./api";
 import { computeLoadPercent } from "./load";
 

@@ -2,7 +2,7 @@ import { httpFetchJson, httpFetchText } from "../../lib/httpFetch.js";
 import { createTtlCache } from "../../lib/ttlCache.js";
 import { BadRequestError } from "../../lib/errors.js";
 import { resolveJavaMajor } from "../runtime/runtimeImages.js";
-import { compareMcVersions } from "@minecraftpanel/shared";
+import { compareMcVersions } from "@latticore/shared";
 import { fetchMavenSha256, parseMavenMetadataVersions } from "./maven.js";
 import type { InstallPlan, MinecraftServerProvider, ProviderVersion, VersionMap } from "./types.js";
 

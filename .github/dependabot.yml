@@ -9,8 +9,25 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
+      # The CLI and the client must always move together.
+      prisma:
+        patterns: ["prisma", "@prisma/*"]
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Majors that need a real migration, done as their own change:
+      # Prisma 7 (prisma.config.ts + driver adapter), Tailwind 4 (new
+      # PostCSS plugin and CSS-based config).
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      # Follows the Node runtime (24 LTS in the Docker image and CI), not
+      # the newest Node release.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directories: ["/", "/runtime-images/java8", "/runtime-images/java17", "/runtime-images/java21", "/runtime-images/java25"]

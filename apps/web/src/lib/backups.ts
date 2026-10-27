@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BackupDto, BackupSettingsDto, BackupSettingsInput, CreateBackupInput } from "@minecraftpanel/shared";
+import type { BackupDto, BackupSettingsDto, BackupSettingsInput, CreateBackupInput } from "@latticore/shared";
 import { api } from "./api";
 
 export function useBackups(serverId: string) {

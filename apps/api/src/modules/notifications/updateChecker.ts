@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import type { ServerSoftware } from "@minecraftpanel/shared";
+import type { ServerSoftware } from "@latticore/shared";
 import { getProvider } from "../../minecraft/providers/index.js";
 import { logger } from "../../lib/logger.js";
 import type { NotificationDispatcherService } from "./notificationDispatcher.service.js";

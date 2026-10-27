@@ -28,11 +28,11 @@ flowchart LR
         end
 
         subgraph MC1["mc-server-1 container"]
-            S1["panel-installed jar<br/>(ghcr.io/.../minecontroller-runtime)"]
+            S1["panel-installed jar<br/>(ghcr.io/.../latticore-runtime)"]
         end
 
         subgraph MC2["mc-server-2 container"]
-            S2["panel-installed jar<br/>(ghcr.io/.../minecontroller-runtime)"]
+            S2["panel-installed jar<br/>(ghcr.io/.../latticore-runtime)"]
         end
 
         DSOCK[("/var/run/docker.sock")]
@@ -68,7 +68,7 @@ Inside `apps/api/src`:
 | Path | Responsibility |
 |---|---|
 | `modules/<feature>/` | One folder per feature (servers, files, players, roles, users, audit, backups, modrinth, ...), each split into `*.routes.ts` (HTTP handlers + permission checks) and `*.service.ts` (business logic) |
-| `plugins/` | Fastify plugins: `prisma.ts` (SQLite connection, WAL mode), `auth.ts` (session + RBAC decorators), `minecraft.ts` (wires the server manager), `liveSessions.ts`, `metricsHistory.ts` |
+| `plugins/` | Fastify plugins that wire the services up: `prisma.ts` (SQLite connection, WAL mode), `auth.ts` (session + RBAC decorators), `minecraft.ts` (the server manager), `backups.ts`, `scheduler.ts`, `network.ts` (proxy networks), `notifications.ts`, `playerActivity.ts`, `liveSessions.ts`, `metricsHistory.ts`, `audit.ts` |
 | `minecraft/` | The Docker orchestration layer — install pipeline, container lifecycle, console (attach + legacy RCON) — see below |
 | `ws/` | One multiplexed live session per server, backing `/ws/servers/:id` |
 | `lib/` | Cross-cutting utilities: safe path resolution, typed errors, 2FA crypto, `server.properties` codec |
@@ -105,7 +105,7 @@ sequenceDiagram
     API-->>Web: live status, stats, console lines
 ```
 
-Version/installer lookups per server type live in `apps/api/src/minecraft/providers/`, each talking to that ecosystem's own metadata API (Mojang Piston-Meta, PaperMC's `fill.papermc.io`, `meta.fabricmc.net`, etc.) to resolve a concrete download. **Vanilla, Paper, and Fabric** are self-contained server jars, downloaded and hash-verified directly by `ServerInstaller` — this project reimplements that part itself rather than delegating to a third-party image. **Forge and NeoForge** ship a real installer *program* rather than a self-contained jar: the provider resolves the exact installer artifact from the project's Maven repository (Forge's promotions file + `maven-metadata.xml`, NeoForge's versions API) along with its published SHA-256, `ServerInstaller` downloads and verifies it, and `DockerMinecraftRuntime.runInstaller()` runs `java -jar <installer> --installServer` in a throwaway container — same runtime image, data-dir bind mount and lockdown (non-root, `CapDrop: ALL`, `no-new-privileges`) as the server itself, but with outbound network access, since the installer downloads libraries itself. Afterwards `detectLaunchTarget()` works out how to start the result: the `@libraries/.../unix_args.txt` argsfile referenced by `run.sh` (Forge 1.17+, all NeoForge) or the `forge-<version>.jar` older Forge versions produce. That launch target is stored in `Server.installManifest`, so every restart regenerates the same launch script with the current memory limit.
+Version/installer lookups per server type live in `apps/api/src/minecraft/providers/`, each talking to that ecosystem's own metadata API (Mojang Piston-Meta, PaperMC's `fill.papermc.io`, `meta.fabricmc.net`, etc.) to resolve a concrete download. **Vanilla, Paper, and Fabric** are self-contained server jars, downloaded and hash-verified directly by `ServerInstaller` — this project reimplements that part itself rather than delegating to a third-party image. **Forge and NeoForge** ship a real installer *program* rather than a self-contained jar: the provider resolves the exact installer artifact from the project's Maven repository (Forge's promotions file + `maven-metadata.xml`, NeoForge's versions API) along with its published SHA-256, `ServerInstaller` downloads and verifies it, and `DockerMinecraftRuntime.runInstaller()` runs `java -jar <installer> --installServer` in a throwaway container — same runtime image, data-dir bind mount and lockdown (non-root, `CapDrop: ALL`, `no-new-privileges`) as the server itself, but with outbound network access, since the installer downloads libraries itself. Afterwards `detectLaunchTarget()` works out how to start the result: the `@libraries/.../unix_args.txt` argsfile referenced by `run.sh` (Forge 1.17+, all NeoForge) or the `forge-<version>.jar` older Forge versions produce. That launch target is stored in `Server.installManifest`, so every restart regenerates the same launch script with the current memory limit. The runtime image tag is stored per server too (`Server.javaImageTag`), so a restart never silently changes a server's Java; only the registry/repo part of the official images follows the current `RUNTIME_IMAGE_BASE` (`runtimeImageFor()`), which is how servers created before the rename move from `minecontroller-runtime` to `latticore-runtime`.
 
 The same pipeline powers **Reinstall** (`POST /api/servers/:id/reinstall`, optional `mcVersion`): the container is removed and the install re-run in place over the existing data directory.
 

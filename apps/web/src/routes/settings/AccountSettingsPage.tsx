@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Monitor, ShieldCheck } from "lucide-react";
-import { changePasswordSchema, disableTotpSchema, type ChangePasswordInput, type DisableTotpInput } from "@minecraftpanel/shared";
+import { changePasswordSchema, disableTotpSchema, type ChangePasswordInput, type DisableTotpInput } from "@latticore/shared";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";

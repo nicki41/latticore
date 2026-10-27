@@ -13,7 +13,7 @@ const TTL_MS = 60 * 60 * 1000; // 1 hour — a home connection's public IP rarel
  * unavailable or the lookup fails, so the UI can fall back to just the port.
  */
 const fetchPublicIp = createTtlCache(TTL_MS, async () => {
-  const { ip } = await httpFetchJson<{ ip: string }>("https://api.ipify.org?format=json", "minecraftpanel");
+  const { ip } = await httpFetchJson<{ ip: string }>("https://api.ipify.org?format=json", "latticore");
   return ip;
 });
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import type { ServerStatus, UpdateServerSettingsInput } from "@minecraftpanel/shared";
+import type { ServerStatus, UpdateServerSettingsInput } from "@latticore/shared";
 import { ApiError } from "@/lib/api";
 import { useServerAction, useUpdateServerSettings } from "@/lib/servers";
 

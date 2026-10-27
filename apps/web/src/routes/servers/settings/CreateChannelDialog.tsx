@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import type { CreateNotificationChannelInput, NotificationChannelType } from "@minecraftpanel/shared";
-import { NOTIFICATION_CHANNEL_TYPES, NOTIFICATION_CHANNEL_TYPE_LABELS } from "@minecraftpanel/shared";
+import type { CreateNotificationChannelInput, NotificationChannelType } from "@latticore/shared";
+import { NOTIFICATION_CHANNEL_TYPES, NOTIFICATION_CHANNEL_TYPE_LABELS } from "@latticore/shared";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

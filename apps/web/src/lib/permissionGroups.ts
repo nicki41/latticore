@@ -1,4 +1,4 @@
-import { PERMISSIONS, type Permission } from "@minecraftpanel/shared";
+import { PERMISSIONS, type Permission } from "@latticore/shared";
 
 export function groupPermissions(): Record<string, Permission[]> {
   const groups: Record<string, Permission[]> = {};

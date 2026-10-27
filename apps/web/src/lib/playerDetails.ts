@@ -8,7 +8,7 @@ import type {
   PlayerSessionSummaryDto,
   PlayerSessionsRange,
   PlayerStatsDto,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { api } from "./api";
 
 function encoded(username: string) {

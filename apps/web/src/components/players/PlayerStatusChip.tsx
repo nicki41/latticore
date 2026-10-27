@@ -1,4 +1,4 @@
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 
 interface PlayerStatusChipProps {
   player: Pick<PlayerDto, "online" | "banned">;

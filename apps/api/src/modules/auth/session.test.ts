@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { describe, expect, it, vi } from "vitest";
 import {
+  clearSessionCookie,
   generateSessionToken,
   hashSessionToken,
+  readSessionToken,
+  SESSION_COOKIE_NAME,
   sessionExpiryFromNow,
   shouldRefreshSession,
 } from "./session.js";
@@ -54,5 +58,40 @@ describe("sessionExpiryFromNow / shouldRefreshSession", () => {
   it("refreshes an already-expired session too", () => {
     const expired = new Date(Date.now() - 1000);
     expect(shouldRefreshSession(expired)).toBe(true);
+  });
+});
+
+/** Just the slice of FastifyRequest readSessionToken uses; "signed" values are prefixed with "ok:". */
+function requestWith(cookies: Record<string, string>): FastifyRequest {
+  return {
+    cookies,
+    unsignCookie: (raw: string) => (raw.startsWith("ok:") ? { valid: true, renew: false, value: raw.slice(3) } : { valid: false, renew: false, value: null }),
+  } as unknown as FastifyRequest;
+}
+
+describe("readSessionToken / clearSessionCookie", () => {
+  it("reads the current cookie", () => {
+    expect(SESSION_COOKIE_NAME).toBe("latticore_session");
+    expect(readSessionToken(requestWith({ latticore_session: "ok:new-token" }))).toBe("new-token");
+  });
+
+  it("still accepts the cookie from before the rename, so an update doesn't sign anyone out", () => {
+    expect(readSessionToken(requestWith({ mcpanel_session: "ok:old-token" }))).toBe("old-token");
+  });
+
+  it("prefers the current cookie when both are present", () => {
+    expect(readSessionToken(requestWith({ latticore_session: "ok:new-token", mcpanel_session: "ok:old-token" }))).toBe("new-token");
+  });
+
+  it("rejects a tampered cookie under either name", () => {
+    expect(readSessionToken(requestWith({ latticore_session: "forged" }))).toBeNull();
+    expect(readSessionToken(requestWith({ mcpanel_session: "forged" }))).toBeNull();
+    expect(readSessionToken(requestWith({}))).toBeNull();
+  });
+
+  it("signing out clears both names", () => {
+    const reply = { clearCookie: vi.fn() } as unknown as FastifyReply;
+    clearSessionCookie(reply);
+    expect(vi.mocked(reply.clearCookie).mock.calls.map(([name]) => name)).toEqual(["latticore_session", "mcpanel_session"]);
   });
 });

@@ -4,7 +4,7 @@ import {
   NOTIFICATION_CATEGORIES,
   type NotificationCategory,
   type NotificationPreferenceDto,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 
 const DEFAULTS: Record<NotificationCategory, boolean> = {
   serverStatus: true,

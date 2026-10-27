@@ -6,7 +6,7 @@ import type {
   ServerSoftware,
   ServerStatsDto,
   UpdateServerSettingsInput,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { api } from "./api";
 
 export function useServers() {

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { createUserSchema, updateUserSchema, setServerAccessSchema, type AccessLevel, type ServerAccessGrantDto } from "@minecraftpanel/shared";
+import { createUserSchema, updateUserSchema, setServerAccessSchema, type AccessLevel, type ServerAccessGrantDto } from "@latticore/shared";
 import { UserService } from "./users.service.js";
 import { AuditAction } from "../audit/audit.service.js";
 import { NotFoundError } from "../../lib/errors.js";

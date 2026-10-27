@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import type { FastifyInstance } from "fastify";
-import { backupSettingsSchema, createBackupSchema, updateBackupSchema } from "@minecraftpanel/shared";
+import { backupSettingsSchema, createBackupSchema, updateBackupSchema } from "@latticore/shared";
 import { AuditAction } from "../audit/audit.service.js";
 
 export async function backupsRoutes(fastify: FastifyInstance) {

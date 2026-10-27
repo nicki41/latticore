@@ -1,5 +1,5 @@
 import { CheckCircle2, Download, ExternalLink, Puzzle, Sparkles } from "lucide-react";
-import type { FeaturedCollectionDto, FeaturedProjectDto } from "@minecraftpanel/shared";
+import type { FeaturedCollectionDto, FeaturedProjectDto } from "@latticore/shared";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

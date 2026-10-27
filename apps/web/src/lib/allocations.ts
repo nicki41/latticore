@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { ServerAllocationDto } from "@minecraftpanel/shared";
+import type { ServerAllocationDto } from "@latticore/shared";
 import { api, ApiError } from "./api";
 
 interface AllocationMutationResult {

@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
-import type { CreateRoleInput, Permission, RoleDto, UpdateRoleInput } from "@minecraftpanel/shared";
+import type { CreateRoleInput, Permission, RoleDto, UpdateRoleInput } from "@latticore/shared";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../lib/errors.js";
 
 export interface ActingUser {

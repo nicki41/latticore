@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Ban, LogOut, ShieldCheck, ShieldOff, ListPlus, ListX, ShieldX, Trash2, Clock, Globe, Gamepad2, Eye, EyeOff, MessageSquare, Check, Copy } from "lucide-react";
-import type { PlayerBanDto, PlayerDto, PlayerGamemode } from "@minecraftpanel/shared";
+import type { PlayerBanDto, PlayerDto, PlayerGamemode } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

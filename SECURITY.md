@@ -14,4 +14,4 @@ You should get a response within a few days. Once a fix is available, a new rele
 
 ## Supported versions
 
-Only the latest `main`/release is supported — there are no maintained older branches.
+Only the latest `master`/release is supported — there are no maintained older branches.

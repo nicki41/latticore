@@ -42,8 +42,8 @@ compression-threshold = 256
 `;
 
 const BACKENDS = [
-  { name: "lobby", address: "mcpanel-lobby-aaaa:25565" },
-  { name: "survival", address: "mcpanel-survival-bbbb:25565" },
+  { name: "lobby", address: "latticore-lobby-aaaa:25565" },
+  { name: "survival", address: "latticore-survival-bbbb:25565" },
 ];
 
 describe("patchVelocityToml", () => {
@@ -52,7 +52,7 @@ describe("patchVelocityToml", () => {
 
     expect(out).toContain('bind = "0.0.0.0:25565"');
     expect(out).toContain('player-info-forwarding-mode = "MODERN"');
-    expect(out).toContain('lobby = "mcpanel-lobby-aaaa:25565"\nsurvival = "mcpanel-survival-bbbb:25565"\ntry = ["lobby", "survival"]');
+    expect(out).toContain('lobby = "latticore-lobby-aaaa:25565"\nsurvival = "latticore-survival-bbbb:25565"\ntry = ["lobby", "survival"]');
     expect(out).not.toContain("factions");
     expect(out).not.toContain("lobby.example.com");
     // Untouched parts survive verbatim.
@@ -96,8 +96,8 @@ describe("patchBungeeConfig", () => {
     expect(config.listeners[0].host).toBe("0.0.0.0:25565");
     expect(config.listeners[0].priorities).toEqual(["lobby", "survival"]);
     expect(config.servers).toEqual({
-      lobby: { motd: "&1lobby", address: "mcpanel-lobby-aaaa:25565", restricted: false },
-      survival: { motd: "&1survival", address: "mcpanel-survival-bbbb:25565", restricted: false },
+      lobby: { motd: "&1lobby", address: "latticore-lobby-aaaa:25565", restricted: false },
+      survival: { motd: "&1survival", address: "latticore-survival-bbbb:25565", restricted: false },
     });
   });
 });
@@ -106,7 +106,7 @@ describe("files on disk", () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-proxy-"));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-proxy-"));
   });
   afterEach(async () => {
     await fs.rm(root, { recursive: true, force: true });

@@ -1,4 +1,4 @@
-import type { ApiErrorCode } from "@minecraftpanel/shared";
+import type { ApiErrorCode } from "@latticore/shared";
 
 /** Base class for all expected/handled errors. Anything else is treated as an internal error. */
 export class AppError extends Error {

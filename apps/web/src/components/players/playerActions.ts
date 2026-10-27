@@ -1,4 +1,4 @@
-import type { PlayerGamemode } from "@minecraftpanel/shared";
+import type { PlayerGamemode } from "@latticore/shared";
 
 /** Shared action-handler contract passed down from ServerPlayersPage into PlayerCard and PlayerDetailModal, so permission/access gating and toast/error handling live in exactly one place. */
 export interface PlayerActionHandlers {

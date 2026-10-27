@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CreateUserInput, ServerAccessGrantDto, UpdateUserInput, UserDto } from "@minecraftpanel/shared";
+import type { CreateUserInput, ServerAccessGrantDto, UpdateUserInput, UserDto } from "@latticore/shared";
 import { api } from "./api";
 
 export function useUsers() {

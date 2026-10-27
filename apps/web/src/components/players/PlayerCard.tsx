@@ -1,5 +1,5 @@
 import { Ban, LogOut, MessageSquare, ShieldCheck, ShieldOff, ListPlus, ListX, ShieldX } from "lucide-react";
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlayerFaceIcon } from "./PlayerFaceIcon";

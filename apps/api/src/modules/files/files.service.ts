@@ -5,7 +5,7 @@ import type { Dirent } from "node:fs";
 import AdmZip from "adm-zip";
 import archiver from "archiver";
 type Archiver = ReturnType<typeof archiver>;
-import type { FileContentDto, FileEntryDto } from "@minecraftpanel/shared";
+import type { FileContentDto, FileEntryDto } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { safeResolve, isRootPath } from "../../lib/safePath.js";
 import { BadRequestError, ConflictError, NotFoundError } from "../../lib/errors.js";

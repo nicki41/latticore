@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import crypto from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ModrinthVersion } from "@minecraftpanel/shared";
+import type { ModrinthVersion } from "@latticore/shared";
 import { ModrinthService } from "./modrinth.service.js";
 
 // ModrinthService resolves install roots via DATA_PATH + a server's dataDir;
@@ -104,7 +104,7 @@ describe("ModrinthService", () => {
   const vanillaServer = { id: "vanilla-1", software: "VANILLA" as const, dataDir: "servers/vanilla-1" };
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-modrinth-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-modrinth-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     prisma = makeFakePrisma();
     service = new ModrinthService(prisma as never);

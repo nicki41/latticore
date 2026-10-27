@@ -12,8 +12,13 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  API_IMAGE: ghcr.io/${{ github.repository_owner }}/minecontroller
-  RUNTIME_IMAGE: ghcr.io/${{ github.repository_owner }}/minecontroller-runtime
+  API_IMAGE: ghcr.io/${{ github.repository_owner }}/latticore
+  RUNTIME_IMAGE: ghcr.io/${{ github.repository_owner }}/latticore-runtime
+  # The names from before the rename to Latticore, still published with
+  # every build: existing installs pull these (docker-compose.yml/.env from
+  # back then) and keep updating without any change on their side.
+  LEGACY_API_IMAGE: ghcr.io/${{ github.repository_owner }}/minecontroller
+  LEGACY_RUNTIME_IMAGE: ghcr.io/${{ github.repository_owner }}/minecontroller-runtime
 
 jobs:
   api:
@@ -36,7 +41,9 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.API_IMAGE }}
+          images: |
+            ${{ env.API_IMAGE }}
+            ${{ env.LEGACY_API_IMAGE }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=semver,pattern={{version}}
@@ -80,7 +87,9 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.RUNTIME_IMAGE }}
+          images: |
+            ${{ env.RUNTIME_IMAGE }}
+            ${{ env.LEGACY_RUNTIME_IMAGE }}
           tags: |
             type=raw,value=java${{ matrix.java }},enable={{is_default_branch}}
             type=raw,value=java${{ matrix.java }}-{{sha}}

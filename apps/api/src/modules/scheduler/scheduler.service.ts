@@ -9,7 +9,7 @@ import type {
   SchedulerRunStepLogEntry,
   SchedulerStepType,
   SchedulerWorkflowDto,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { BadRequestError, ConflictError, NotFoundError } from "../../lib/errors.js";
 import { logger } from "../../lib/logger.js";
 import { env } from "../../config/env.js";

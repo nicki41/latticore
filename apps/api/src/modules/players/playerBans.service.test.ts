@@ -124,7 +124,7 @@ describe("PlayerBanService", () => {
 
   beforeEach(async () => {
     vi.useFakeTimers();
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-playerbans-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-playerbans-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     await fs.mkdir(path.join(tmpDataPath, "server1"), { recursive: true });
     await fs.writeFile(path.join(tmpDataPath, "server1", "usercache.json"), JSON.stringify([{ name: "Steve", uuid: "uuid-steve" }]));

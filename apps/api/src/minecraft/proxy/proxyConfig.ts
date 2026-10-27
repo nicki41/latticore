@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import AdmZip from "adm-zip";
 import { Document, isMap, isSeq, parseDocument, type YAMLMap } from "yaml";
-import { compareMcVersions, type ServerSoftware } from "@minecraftpanel/shared";
+import { compareMcVersions, type ServerSoftware } from "@latticore/shared";
 import { PropertiesDocument } from "../../lib/propertiesCodec.js";
 import { safeResolve } from "../../lib/safePath.js";
 import { CONTAINER_GAME_PORT } from "../runtime/DockerMinecraftRuntime.js";
