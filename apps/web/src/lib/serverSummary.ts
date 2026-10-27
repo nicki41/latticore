@@ -1,4 +1,4 @@
-import { isProxySoftware, type ServerDto } from "@minecraftpanel/shared";
+import { isProxySoftware, type ServerDto } from "@latticore/shared";
 import { usePlayers } from "./players";
 import { useServerConfigFile } from "./serverConfig";
 import { useMetricsHistory } from "./metricsHistory";

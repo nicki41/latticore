@@ -1,4 +1,4 @@
-import type { ApiErrorBody } from "@minecraftpanel/shared";
+import type { ApiErrorBody } from "@latticore/shared";
 
 export class ApiError extends Error {
   code: string;
@@ -33,7 +33,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     credentials: "include",
     headers: {
       ...(json !== undefined ? { "Content-Type": "application/json" } : {}),
-      "X-Requested-With": "minecraftpanel-web",
+      "X-Requested-With": "latticore-web",
       ...(csrfToken ? { [CSRF_HEADER]: csrfToken } : {}),
       ...headers,
     },
@@ -73,7 +73,7 @@ export const api = {
       ...options,
       credentials: "include",
       headers: {
-        "X-Requested-With": "minecraftpanel-web",
+        "X-Requested-With": "latticore-web",
         ...(csrfToken ? { [CSRF_HEADER]: csrfToken } : {}),
         ...options?.headers,
       },

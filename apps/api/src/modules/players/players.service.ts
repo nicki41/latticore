@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { PrismaClient, Server } from "@prisma/client";
-import { isProxySoftware, type PlayerDto, type ServerSoftware } from "@minecraftpanel/shared";
+import { isProxySoftware, type PlayerDto, type ServerSoftware } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { safeResolve } from "../../lib/safePath.js";
 import { BadRequestError, ConflictError } from "../../lib/errors.js";

@@ -1,5 +1,5 @@
 import { format, formatDistanceToNowStrict } from "date-fns";
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 
 export function formatPlaytime(seconds: number): string {
   if (seconds <= 0) return "0m";

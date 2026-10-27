@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { subscribePushSchema } from "@minecraftpanel/shared";
+import { subscribePushSchema } from "@latticore/shared";
 
 const unsubscribeSchema = z.object({ endpoint: z.string().url() });
 

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { PlusCircle, Users as UsersIcon } from "lucide-react";
-import { createUserSchema, type CreateUserInput } from "@minecraftpanel/shared";
+import { createUserSchema, type CreateUserInput } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

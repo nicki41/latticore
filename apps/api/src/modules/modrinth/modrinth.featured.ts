@@ -1,4 +1,4 @@
-import type { FeaturedCollectionDto } from "@minecraftpanel/shared";
+import type { FeaturedCollectionDto } from "@latticore/shared";
 import { createTtlCache } from "../../lib/ttlCache.js";
 import { logger } from "../../lib/logger.js";
 import type { ModrinthClient } from "./modrinth.client.js";

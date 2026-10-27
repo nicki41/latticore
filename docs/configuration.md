@@ -14,7 +14,9 @@ All variables are documented inline in [`.env.example`](../.env.example) — cop
 | `HOST_DATA_PATH` | Normally left unset — auto-detected. See [below](#host_data_path-the-sibling-container-problem). |
 | `MC_PORT_RANGE_MIN` / `MC_PORT_RANGE_MAX` | Port range the panel picks a free port from when creating new servers. |
 | `MINECRAFT_IMAGE` | Docker image used for itzg-managed Minecraft server containers. Must stay compatible with `itzg/docker-minecraft-server`'s `VERSION`/`TYPE`/`EULA` env-var contract and RCON support. |
-| `RUNTIME_IMAGE_BASE` | Registry/repo prefix for the panel-managed Java runtime images (`:java8`/`:java17`/`:java21`/`:java25`), pulled automatically on first use. Only change this for a fork or a local test build. |
+| `RUNTIME_IMAGE_BASE` | Registry/repo prefix for the panel-managed Java runtime images (`:java8`/`:java17`/`:java21`/`:java25`), pulled automatically on first use. Default `ghcr.io/nicki41/latticore-runtime`; only change this for a fork or a local test build. Existing servers follow a change on their next start. |
+| `MINECRAFT_NETWORK` | Docker network the panel and every server container join (proxies reach their backends over it). Default `latticore_mc_net`; installs from before the rename keep `minecraftpanel_mc_net` — see [operations.md#coming-from-minecontroller](operations.md#coming-from-minecontroller). |
+| `LATTICORE_IMAGE` | Read by `docker-compose.yml` only: the panel image to run, default `ghcr.io/nicki41/latticore:latest`. Set it to pin a build, e.g. by commit (`ghcr.io/nicki41/latticore:<short sha>`). |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | Optional. Only needed to pin a specific VAPID keypair (see [below](#web-push-notifications)) — web push works out of the box without setting any of these. |
 
 ## Web push notifications

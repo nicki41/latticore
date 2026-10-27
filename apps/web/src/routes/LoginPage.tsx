@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { loginSchema, verifyTotpLoginSchema, type LoginInput, type VerifyTotpLoginInput } from "@minecraftpanel/shared";
+import { loginSchema, verifyTotpLoginSchema, type LoginInput, type VerifyTotpLoginInput } from "@latticore/shared";
 import { AuthShell } from "@/components/layout/AuthShell";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";

@@ -1,4 +1,4 @@
-import { compareMcVersions } from "@minecraftpanel/shared";
+import { compareMcVersions } from "@latticore/shared";
 import { httpFetchJson } from "../../lib/httpFetch.js";
 import { createTtlCache } from "../../lib/ttlCache.js";
 import { BadRequestError } from "../../lib/errors.js";

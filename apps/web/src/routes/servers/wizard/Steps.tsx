@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Controller, type UseFormReturn } from "react-hook-form";
 import { Check, ExternalLink } from "lucide-react";
-import { isProxySoftware, type CreateServerInput, type ServerSoftware } from "@minecraftpanel/shared";
+import { isProxySoftware, type CreateServerInput, type ServerSoftware } from "@latticore/shared";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

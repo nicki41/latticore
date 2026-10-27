@@ -14,7 +14,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@minecraftpanel/shared": ["../../packages/shared/src/index.ts"]
+      "@latticore/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src", "vite.config.ts"]

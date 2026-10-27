@@ -11,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@minecraftpanel/shared": path.resolve(__dirname, "../../packages/shared/src"),
+      "@latticore/shared": path.resolve(__dirname, "../../packages/shared/src"),
     },
   },
   server: {

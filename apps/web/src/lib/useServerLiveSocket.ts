@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ConsoleLineDto, LiveStatsDto, ServerStatus, ServerWsServerMessage } from "@minecraftpanel/shared";
+import type { ConsoleLineDto, LiveStatsDto, ServerStatus, ServerWsServerMessage } from "@latticore/shared";
 
 const MAX_LINES = 2000;
 const RECONNECT_DELAY_MS = 3000;

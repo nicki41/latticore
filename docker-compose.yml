@@ -1,11 +1,11 @@
 services:
   api:
     # Pulled from GitHub Container Registry — published automatically by
-    # .github/workflows/docker-publish.yml on every push to main. No local
+    # .github/workflows/docker-publish.yml on every push to master. No local
     # build needed for a normal deployment. Contributing/local-dev builds
-    # from source instead via docker-compose.dev.yml — see docs/development.md.
-    image: ${MINECRAFTPANEL_IMAGE:-ghcr.io/nicki41/minecontroller:latest}
-    container_name: minecraftpanel-api
+    # from source instead via docker-compose.dev.yml — see CONTRIBUTING.md.
+    image: ${LATTICORE_IMAGE:-ghcr.io/nicki41/latticore:latest}
+    container_name: latticore
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -31,12 +31,12 @@ services:
       # HOST_DATA_PATH: /absolute/path/to/latticore/data
       DATA_PATH: /data
       MINECRAFT_IMAGE: ${MINECRAFT_IMAGE:-itzg/minecraft-server:latest}
-      RUNTIME_IMAGE_BASE: ${RUNTIME_IMAGE_BASE:-ghcr.io/nicki41/minecontroller-runtime}
-      MINECRAFT_NETWORK: ${MINECRAFT_NETWORK:-minecraftpanel_mc_net}
+      RUNTIME_IMAGE_BASE: ${RUNTIME_IMAGE_BASE:-ghcr.io/nicki41/latticore-runtime}
+      MINECRAFT_NETWORK: ${MINECRAFT_NETWORK:-latticore_mc_net}
       MC_PORT_RANGE_MIN: ${MC_PORT_RANGE_MIN:-25565}
       MC_PORT_RANGE_MAX: ${MC_PORT_RANGE_MAX:-25664}
       MODRINTH_API_URL: ${MODRINTH_API_URL:-https://api.modrinth.com/v2}
-      MODRINTH_USER_AGENT: ${MODRINTH_USER_AGENT:-latticore/0.1.0 (github.com/nicki41/minecontroller)}
+      MODRINTH_USER_AGENT: ${MODRINTH_USER_AGENT:-latticore/0.1.0 (github.com/nicki41/latticore)}
       # Optional — auto-generated and persisted on first boot when left empty.
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
@@ -45,7 +45,7 @@ services:
     # needed to reach the panel at http://<host>:3000. Already behind a
     # reverse proxy (nginx-proxy-manager, Caddy, Traefik, ...)? Comment
     # this out, uncomment the "proxy_net" lines below (in both "networks:"
-    # blocks) and point the proxy at "minecraftpanel-api" : 3000 instead —
+    # blocks) and point the proxy at "latticore" : 3000 instead —
     # enable its "Websockets Support" toggle, the live console needs it.
     ports:
       - "${PANEL_PORT:-3000}:3000"
@@ -61,7 +61,7 @@ services:
       # Grants the API container control over the host's Docker daemon so it
       # can create/start/stop/inspect Minecraft server containers. This is
       # equivalent to root on the host if the API container is compromised —
-      # see README "Docker socket & security" before exposing this panel
+      # see docs/security.md before exposing this panel
       # beyond a trusted, single-tenant, private network.
       - /var/run/docker.sock:/var/run/docker.sock:rw
     networks:
@@ -86,8 +86,10 @@ networks:
   # Dedicated network for dynamically created Minecraft server containers.
   # Declared here so `docker compose down` can be told to leave it alone if
   # servers are still meant to exist; the API also ensures it exists at boot.
+  # The key keeps its pre-rename name on purpose: Compose labels the network
+  # with it and refuses an existing network whose label doesn't match.
   minecraftpanel_mc_net:
-    name: ${MINECRAFT_NETWORK:-minecraftpanel_mc_net}
+    name: ${MINECRAFT_NETWORK:-latticore_mc_net}
     driver: bridge
   # Uncomment together with the "api" service's "proxy_net" entry above if
   # you're putting a reverse proxy in front instead of publishing the port

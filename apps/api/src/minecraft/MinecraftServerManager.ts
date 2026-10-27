@@ -5,7 +5,7 @@ import { PassThrough } from "node:stream";
 import { EventEmitter } from "node:events";
 import type { Readable } from "node:stream";
 import type { PrismaClient, Server } from "@prisma/client";
-import { isProxySoftware, type ServerSoftware, type ServerStatus } from "@minecraftpanel/shared";
+import { isProxySoftware, type ServerSoftware, type ServerStatus } from "@latticore/shared";
 import { env } from "../config/env.js";
 import { logger } from "../lib/logger.js";
 import { getDirectorySize } from "../lib/fsUtils.js";
@@ -99,7 +99,7 @@ function slugify(name: string): string {
 }
 
 function generateContainerName(serverName: string): string {
-  return `mcpanel-${slugify(serverName)}-${crypto.randomBytes(4).toString("hex")}`;
+  return `latticore-${slugify(serverName)}-${crypto.randomBytes(4).toString("hex")}`;
 }
 
 function sleep(ms: number): Promise<void> {

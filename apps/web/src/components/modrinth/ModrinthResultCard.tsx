@@ -1,6 +1,6 @@
 import { CheckCircle2, Download, ExternalLink, Puzzle, TriangleAlert } from "lucide-react";
 import type { ComponentType } from "react";
-import type { ModrinthSearchHit } from "@minecraftpanel/shared";
+import type { ModrinthSearchHit } from "@latticore/shared";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

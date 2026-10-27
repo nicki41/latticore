@@ -50,7 +50,7 @@ vi.mock("./providers/index.js", () => ({
 const { installerInstallMock, installerRefreshLaunchScriptMock } = vi.hoisted(() => ({
   installerInstallMock: vi.fn(async () => ({
     buildVersion: null as string | null,
-    javaImageTag: "mcpanel-runtime:java21",
+    javaImageTag: "latticore-runtime:java21",
     installManifest: JSON.stringify({ kind: "direct-download", filename: "server.jar" }),
   })),
   installerRefreshLaunchScriptMock: vi.fn(async () => {}),
@@ -213,7 +213,7 @@ describe("MinecraftServerManager", () => {
   let tmpDataPath: string;
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-server-manager-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-server-manager-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     installerInstallMock.mockClear();
     installerRefreshLaunchScriptMock.mockClear();
@@ -235,7 +235,7 @@ describe("MinecraftServerManager", () => {
 
     it("rejects an explicit port already used by another server", async () => {
       const prisma = makeFakePrisma();
-      await prisma.server.create({ data: { name: "Existing", software: "VANILLA", mcVersion: "1.21.1", containerName: "mcpanel-existing-aaaa0000", port: 30005, memoryMb: 1024, cpuCores: 1, dataDir: "servers/existing" } });
+      await prisma.server.create({ data: { name: "Existing", software: "VANILLA", mcVersion: "1.21.1", containerName: "latticore-existing-aaaa0000", port: 30005, memoryMb: 1024, cpuCores: 1, dataDir: "servers/existing" } });
       const manager = new MinecraftServerManager(prisma as never, makeFakeRuntime());
       await expect(
         manager.createServer({ name: "Clash", software: "VANILLA", mcVersion: "1.21.1", memoryMb: 1024, cpuCores: 1, port: 30005, eulaAccepted: true }),
@@ -254,7 +254,7 @@ describe("MinecraftServerManager", () => {
       const prisma = makeFakePrisma();
       const manager = new MinecraftServerManager(prisma as never, makeFakeRuntime());
       const server = await manager.createServer({ name: "My Cool Server!", software: "VANILLA", mcVersion: "1.21.1", memoryMb: 1024, cpuCores: 1, eulaAccepted: true });
-      expect(server.containerName).toMatch(/^mcpanel-my-cool-server-[0-9a-f]{8}$/);
+      expect(server.containerName).toMatch(/^latticore-my-cool-server-[0-9a-f]{8}$/);
       expect(server.dataDir).toBe(`servers/${server.id}`);
       const stat = await fs.stat(path.join(tmpDataPath, server.dataDir));
       expect(stat.isDirectory()).toBe(true);
@@ -279,14 +279,14 @@ describe("MinecraftServerManager", () => {
           memoryMb: 2048,
           cpuCores: 2,
           runtime: "PANEL_MANAGED",
-          javaImageTag: "mcpanel-runtime:java21",
+          javaImageTag: "latticore-runtime:java21",
         }),
       );
       expect(runtime.start).toHaveBeenCalledWith("container-abc123");
 
       const row = await prisma.server.findUnique({ where: { id: server.id } });
       expect(row?.buildVersion).toBeNull();
-      expect(row?.javaImageTag).toBe("mcpanel-runtime:java21");
+      expect(row?.javaImageTag).toBe("latticore-runtime:java21");
 
       // server.properties is written by the panel itself before the container
       // ever starts — see the note in DockerMinecraftRuntime.createContainer()
@@ -317,7 +317,7 @@ describe("MinecraftServerManager", () => {
           name: "Bad Row",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-bad-row-deadbeef",
+          containerName: "latticore-bad-row-deadbeef",
           port: 30009,
           memoryMb: 1024,
           cpuCores: 1,
@@ -356,7 +356,7 @@ describe("MinecraftServerManager", () => {
           name: "Lifecycle",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-lifecycle-deadbeef",
+          containerName: "latticore-lifecycle-deadbeef",
           port: 30001,
           memoryMb: 1024,
           cpuCores: 1,
@@ -484,7 +484,7 @@ describe("MinecraftServerManager", () => {
           name: "Attach-based",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-attach-based-deadbeef",
+          containerName: "latticore-attach-based-deadbeef",
           port: 30007,
           memoryMb: 1024,
           cpuCores: 1,
@@ -492,7 +492,7 @@ describe("MinecraftServerManager", () => {
           containerId: "container-existing",
           status: "RUNNING",
           runtime: "PANEL_MANAGED",
-          javaImageTag: "mcpanel-runtime:java21",
+          javaImageTag: "latticore-runtime:java21",
           installManifest: JSON.stringify({ kind: "direct-download", filename: "server.jar" }),
           ...extra,
         },
@@ -546,7 +546,7 @@ describe("MinecraftServerManager", () => {
 
       expect(installerRefreshLaunchScriptMock).toHaveBeenCalledWith(expect.objectContaining({ memoryMb: 4096 }));
       expect(runtime.createContainer).toHaveBeenCalledWith(
-        expect.objectContaining({ runtime: "PANEL_MANAGED", javaImageTag: "mcpanel-runtime:java21", memoryMb: 4096 }),
+        expect.objectContaining({ runtime: "PANEL_MANAGED", javaImageTag: "latticore-runtime:java21", memoryMb: 4096 }),
       );
       // No env-var/RCON hint resolution for this runtime kind at all.
       expect(runtime.createContainer).toHaveBeenCalledWith(expect.not.objectContaining({ softwareEnv: expect.anything() }));
@@ -564,7 +564,7 @@ describe("MinecraftServerManager", () => {
   describe("port conflicts", () => {
     async function createServerWithAllocation(prisma: ReturnType<typeof makeFakePrisma>, allocationPort: number) {
       const owner = await prisma.server.create({
-        data: { name: "Owner", software: "VANILLA", mcVersion: "1.21.1", containerName: "mcpanel-owner-aaaa0000", port: 30000, memoryMb: 1024, cpuCores: 1, dataDir: "servers/owner" },
+        data: { name: "Owner", software: "VANILLA", mcVersion: "1.21.1", containerName: "latticore-owner-aaaa0000", port: 30000, memoryMb: 1024, cpuCores: 1, dataDir: "servers/owner" },
       });
       prisma.allocations.push({ id: "alloc-1", serverId: owner.id as string, port: allocationPort });
       return owner;
@@ -605,7 +605,7 @@ describe("MinecraftServerManager", () => {
           name: "Fragile",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-fragile-deadbeef",
+          containerName: "latticore-fragile-deadbeef",
           port: 30008,
           memoryMb: 1024,
           cpuCores: 1,
@@ -677,7 +677,7 @@ describe("MinecraftServerManager", () => {
           name: `Was ${status}`,
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: `mcpanel-${status.toLowerCase()}-deadbeef`,
+          containerName: `latticore-${status.toLowerCase()}-deadbeef`,
           port: 30000 + Math.floor(Math.random() * 10),
           memoryMb: 1024,
           cpuCores: 1,
@@ -747,7 +747,7 @@ describe("MinecraftServerManager", () => {
           name: "Reinstallable",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-reinstallable-deadbeef",
+          containerName: "latticore-reinstallable-deadbeef",
           port: 30004,
           memoryMb: 1024,
           cpuCores: 1,
@@ -756,7 +756,7 @@ describe("MinecraftServerManager", () => {
           status: "STOPPED",
           runtime: "PANEL_MANAGED",
           eulaAccepted: true,
-          javaImageTag: "mcpanel-runtime:java21",
+          javaImageTag: "latticore-runtime:java21",
           ...extra,
         },
       });
@@ -796,7 +796,7 @@ describe("MinecraftServerManager", () => {
           name: "Vanished",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-vanished-deadbeef",
+          containerName: "latticore-vanished-deadbeef",
           port: 30002,
           memoryMb: 1024,
           cpuCores: 1,
@@ -821,7 +821,7 @@ describe("MinecraftServerManager", () => {
           name: "Crashed",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-crashed-deadbeef",
+          containerName: "latticore-crashed-deadbeef",
           port: 30003,
           memoryMb: 1024,
           cpuCores: 1,
@@ -849,7 +849,7 @@ describe("MinecraftServerManager", () => {
           name: "SlowShutdown",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-slowshutdown-deadbeef",
+          containerName: "latticore-slowshutdown-deadbeef",
           port: 30005,
           memoryMb: 1024,
           cpuCores: 1,
@@ -878,7 +878,7 @@ describe("MinecraftServerManager", () => {
           name: "Healthy",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-healthy-deadbeef",
+          containerName: "latticore-healthy-deadbeef",
           port: 30004,
           memoryMb: 1024,
           cpuCores: 1,
@@ -904,7 +904,7 @@ describe("MinecraftServerManager", () => {
           name: "Starting",
           software: "VANILLA",
           mcVersion: "1.21.1",
-          containerName: "mcpanel-starting-deadbeef",
+          containerName: "latticore-starting-deadbeef",
           port: 30006,
           memoryMb: 1024,
           cpuCores: 1,

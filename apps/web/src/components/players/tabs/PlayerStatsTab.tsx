@@ -1,4 +1,4 @@
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/layout/EmptyState";

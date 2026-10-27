@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { EnableTotpInput } from "@minecraftpanel/shared";
+import type { EnableTotpInput } from "@latticore/shared";
 import { api } from "./api";
 
 interface TotpSetupResult {

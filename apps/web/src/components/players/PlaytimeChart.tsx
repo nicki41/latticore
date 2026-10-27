@@ -1,7 +1,7 @@
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Activity } from "lucide-react";
-import type { PlayerSessionBucketDto, PlayerSessionsRange } from "@minecraftpanel/shared";
+import type { PlayerSessionBucketDto, PlayerSessionsRange } from "@latticore/shared";
 import { formatPlaytime } from "@/lib/playerFormat";
 
 interface PlaytimeChartProps {

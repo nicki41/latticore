@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 /*
- * Palette from the minecraftpanel design mockup (dark neutrals + pink
- * accent, see minecraftpanel.dc.html): background #15151a, surface #1c1c22,
+ * Latticore palette (dark neutrals + pink accent, from the original design
+ * mockup): background #15151a, surface #1c1c22,
  * border #2a2a30, text primary #eceef1, text secondary #8a8a92, accent pink
  * #d6598f / hover #c23f79 / tint #e8a4c4 / pale #f4c9dc.
  *

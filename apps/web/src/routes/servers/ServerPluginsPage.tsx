@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Download, Puzzle } from "lucide-react";
-import { SOFTWARE_TO_MODRINTH_LOADER, isProxySoftware, pluginTerminologyFor } from "@minecraftpanel/shared";
+import { SOFTWARE_TO_MODRINTH_LOADER, isProxySoftware, pluginTerminologyFor } from "@latticore/shared";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/layout/EmptyState";

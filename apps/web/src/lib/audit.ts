@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { AuditLogDto } from "@minecraftpanel/shared";
+import type { AuditLogDto } from "@latticore/shared";
 import { api } from "./api";
 
 export interface AuditLogFilters {

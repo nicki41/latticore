@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { createServerSchema, type CreateServerInput } from "@minecraftpanel/shared";
+import { createServerSchema, type CreateServerInput } from "@latticore/shared";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/lib/api";

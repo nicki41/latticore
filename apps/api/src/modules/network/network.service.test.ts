@@ -96,14 +96,14 @@ function makeStore(rows: Row[]) {
 const owner = { id: "u1", isOwner: true, permissions: new Set() } as never;
 
 function server(id: string, extra: Partial<Row> = {}): Row {
-  return { id, name: id, software: "PAPER", mcVersion: "1.21.11", status: "STOPPED", runtime: "PANEL_MANAGED", containerName: `mcpanel-${id}-0000`, dataDir: `servers/${id}`, exposePort: true, ...extra };
+  return { id, name: id, software: "PAPER", mcVersion: "1.21.11", status: "STOPPED", runtime: "PANEL_MANAGED", containerName: `latticore-${id}-0000`, dataDir: `servers/${id}`, exposePort: true, ...extra };
 }
 
 describe("NetworkService", () => {
   let dataPath: string;
 
   beforeEach(async () => {
-    dataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-network-"));
+    dataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-network-"));
     globalThis.__TEST_DATA_PATH__ = dataPath;
   });
   afterEach(async () => {
@@ -126,7 +126,7 @@ describe("NetworkService", () => {
     expect(manager.sendCommand).toHaveBeenCalledWith("proxy", "velocity reload", expect.objectContaining({ silent: true }));
 
     // Proxy knows the backend by container name; backend trusts the proxy's secret and is no longer published.
-    expect(await read("servers/proxy/velocity.toml")).toContain('lobby = "mcpanel-Lobby-0000:25565"\ntry = ["lobby"]');
+    expect(await read("servers/proxy/velocity.toml")).toContain('lobby = "latticore-Lobby-0000:25565"\ntry = ["lobby"]');
     const secret = (await read("servers/proxy/forwarding.secret")).trim();
     expect(parseYaml(await read("servers/Lobby/config/paper-global.yml")).proxies.velocity).toEqual({ enabled: true, "online-mode": true, secret });
     expect(await read("servers/Lobby/server.properties")).toContain("online-mode=false");

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { createWorkflowSchema, updateWorkflowSchema } from "@minecraftpanel/shared";
+import { createWorkflowSchema, updateWorkflowSchema } from "@latticore/shared";
 import { z } from "zod";
 import { AuditAction } from "../audit/audit.service.js";
 

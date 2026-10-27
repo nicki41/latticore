@@ -15,7 +15,7 @@ import {
   type Permission,
   type ServerSoftware,
   type ServerStatus,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { BadRequestError, ConflictError, NotFoundError } from "../../lib/errors.js";

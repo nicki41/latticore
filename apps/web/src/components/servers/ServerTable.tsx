@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Play, Square, RotateCw, ArrowUpRight } from "lucide-react";
-import type { ServerDto } from "@minecraftpanel/shared";
+import type { ServerDto } from "@latticore/shared";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { StatusLabel } from "./StatusBadge";

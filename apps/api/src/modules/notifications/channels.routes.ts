@@ -6,7 +6,7 @@ import {
   type CreateNotificationChannelInput,
   type NotificationCategory,
   type NotificationChannelDto,
-} from "@minecraftpanel/shared";
+} from "@latticore/shared";
 import type { NotificationChannel } from "@prisma/client";
 import { encryptChannelConfig, decryptChannelConfig } from "../../lib/webhookCrypto.js";
 import { sendToChannel } from "./channels/index.js";

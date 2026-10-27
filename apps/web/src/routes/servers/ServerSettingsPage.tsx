@@ -1,4 +1,4 @@
-import { getServerConfigSchema, isProxySoftware } from "@minecraftpanel/shared";
+import { getServerConfigSchema, isProxySoftware } from "@latticore/shared";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth";
 import { useServerOutletContext } from "./useServerOutletContext";

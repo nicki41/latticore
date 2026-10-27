@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ServerConfigFileValuesDto } from "@minecraftpanel/shared";
+import type { ServerConfigFileValuesDto } from "@latticore/shared";
 import { api } from "./api";
 
 export function useServerConfigFile(serverId: string, fileId: string, enabled = true) {

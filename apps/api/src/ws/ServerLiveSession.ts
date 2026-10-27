@@ -1,6 +1,6 @@
 import type { Readable } from "node:stream";
 import type { WebSocket } from "ws";
-import type { ConsoleLineDto, ServerStatus, ServerWsServerMessage } from "@minecraftpanel/shared";
+import type { ConsoleLineDto, ServerStatus, ServerWsServerMessage } from "@latticore/shared";
 import { logger } from "../lib/logger.js";
 import type { MinecraftServerManager } from "../minecraft/MinecraftServerManager.js";
 

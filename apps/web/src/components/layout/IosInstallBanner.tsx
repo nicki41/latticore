@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Share, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const DISMISSED_KEY = "minecontroller:ios-install-banner-dismissed";
+const DISMISSED_KEY = "latticore:ios-install-banner-dismissed";
+/** Where a dismissal was stored before the rename — still honored. */
+const LEGACY_DISMISSED_KEY = "minecontroller:ios-install-banner-dismissed";
 
 /** True only for iOS/iPadOS Safari — the only browser exposing `navigator.standalone`. */
 function isIosSafariNotStandalone(): boolean {
@@ -22,7 +24,7 @@ export function IosInstallBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISSED_KEY)) return;
+    if (localStorage.getItem(DISMISSED_KEY) || localStorage.getItem(LEGACY_DISMISSED_KEY)) return;
     setVisible(isIosSafariNotStandalone());
   }, []);
 

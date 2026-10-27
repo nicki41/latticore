@@ -10,7 +10,7 @@ import fastifyRateLimit from "@fastify/rate-limit";
 import fastifyMultipart from "@fastify/multipart";
 import fastifyStatic from "@fastify/static";
 import fastifyWebsocket from "@fastify/websocket";
-import type { ApiErrorBody } from "@minecraftpanel/shared";
+import type { ApiErrorBody } from "@latticore/shared";
 import { env } from "./config/env.js";
 import { logger } from "./lib/logger.js";
 import prismaPlugin from "./plugins/prisma.js";
@@ -105,7 +105,9 @@ export async function buildApp() {
     // parser resolves last "wins" unpredictably, reintroducing "Missing csrf
     // secret" for anyone who loaded the app before this fixed config
     // shipped. A rename sidesteps the collision entirely; the old cookie is
-    // simply ignored from here on and expires on its own.
+    // simply ignored from here on and expires on its own. Deliberately NOT
+    // renamed with the project: the SPA fetches its token once per page
+    // load, so a new name would fail every tab left open across an update.
     cookieKey: "mcpanel_csrf",
     // cookieOpts REPLACES the plugin's own default entirely (shallow
     // Object.assign, not a merge) — httpOnly must be repeated here or it's

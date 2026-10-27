@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Filter, Search, Users, X } from "lucide-react";
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

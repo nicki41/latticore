@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import type { AuditLogDto } from "@minecraftpanel/shared";
+import type { AuditLogDto } from "@latticore/shared";
 
 const querySchema = z.object({
   userId: z.string().optional(),

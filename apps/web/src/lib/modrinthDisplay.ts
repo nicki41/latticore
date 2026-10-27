@@ -1,4 +1,4 @@
-import type { ModrinthSearchHit } from "@minecraftpanel/shared";
+import type { ModrinthSearchHit } from "@latticore/shared";
 
 /** Loaders that make a result a "Plugin" in our terminology (Bukkit-family servers). */
 export const PLUGIN_LOADERS = ["paper", "spigot", "bukkit", "purpur", "folia"];

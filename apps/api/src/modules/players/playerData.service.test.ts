@@ -109,7 +109,7 @@ describe("PlayerDataService (filesystem I/O)", () => {
   let tmpDataPath: string;
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-playerdata-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-playerdata-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     await fs.mkdir(path.join(tmpDataPath, "server1", "world", "stats"), { recursive: true });
     await fs.mkdir(path.join(tmpDataPath, "server1", "world", "playerdata"), { recursive: true });

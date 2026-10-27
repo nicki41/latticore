@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Radio, Clock, Users, Play, Square, RotateCw } from "lucide-react";
-import type { ServerDto } from "@minecraftpanel/shared";
+import type { ServerDto } from "@latticore/shared";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusLabel } from "./StatusBadge";

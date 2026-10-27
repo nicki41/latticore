@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Permission } from "@minecraftpanel/shared";
+import type { Permission } from "@latticore/shared";
 import { assertGrantable, type ActingUser } from "./roles.service.js";
 
 function actingUser(isOwner: boolean, permissions: Permission[]): ActingUser {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { PlayerDto, PlayerSessionsRange } from "@minecraftpanel/shared";
+import type { PlayerDto, PlayerSessionsRange } from "@latticore/shared";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlayerSessions, usePlayerStats } from "@/lib/playerDetails";

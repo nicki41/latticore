@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { isProxySoftware, type MetricsSampleDto, type ServerSoftware } from "@minecraftpanel/shared";
+import { isProxySoftware, type MetricsSampleDto, type ServerSoftware } from "@latticore/shared";
 import { logger } from "../lib/logger.js";
 import type { MinecraftServerManager } from "./MinecraftServerManager.js";
 import type { MetricsHistoryStore } from "./MetricsHistoryStore.js";

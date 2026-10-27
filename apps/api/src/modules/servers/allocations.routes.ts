@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { createAllocationSchema } from "@minecraftpanel/shared";
+import { createAllocationSchema } from "@latticore/shared";
 import { AuditAction } from "../audit/audit.service.js";
 import { ConflictError, NotFoundError } from "../../lib/errors.js";
 

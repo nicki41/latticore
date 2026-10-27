@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AddNetworkBackendInput, NetworkCandidateDto, NetworkChangeResultDto, NetworkDto } from "@minecraftpanel/shared";
+import type { AddNetworkBackendInput, NetworkCandidateDto, NetworkChangeResultDto, NetworkDto } from "@latticore/shared";
 import { api } from "./api";
 
 export function useNetwork(proxyId: string, enabled = true) {

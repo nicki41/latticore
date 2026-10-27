@@ -1,6 +1,6 @@
 import { httpFetchJson } from "../../lib/httpFetch.js";
 import { createTtlCache } from "../../lib/ttlCache.js";
-import { compareMcVersions } from "@minecraftpanel/shared";
+import { compareMcVersions } from "@latticore/shared";
 
 const MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -19,7 +19,7 @@ export interface MojangVersionDetail {
 }
 
 const manifestIndex = createTtlCache<{ urls: Map<string, string>; latestRelease: string }>(ONE_HOUR_MS, async () => {
-  const manifest = await httpFetchJson<MojangVersionManifest>(MANIFEST_URL, "minecraftpanel-runtime-images");
+  const manifest = await httpFetchJson<MojangVersionManifest>(MANIFEST_URL, "latticore-runtime-images");
   return { urls: new Map(manifest.versions.map((v) => [v.id, v.url])), latestRelease: manifest.latest.release };
 });
 
@@ -75,7 +75,24 @@ export async function resolveJavaMajor(mcVersion: string, userAgent: string): Pr
 // no local build step required. Override the registry/repo prefix via
 // RUNTIME_IMAGE_BASE (e.g. for a fork publishing under a different owner,
 // or a local dev build tagged the same way).
-const RUNTIME_IMAGE_BASE = process.env.RUNTIME_IMAGE_BASE ?? "ghcr.io/nicki41/minecontroller-runtime";
+const RUNTIME_IMAGE_BASE = process.env.RUNTIME_IMAGE_BASE ?? "ghcr.io/nicki41/latticore-runtime";
+
+// Every name the official runtime images are published under — CI still
+// pushes the pre-rename one too, so installs configured with it keep
+// working unchanged.
+const OFFICIAL_RUNTIME_IMAGE_BASES = ["ghcr.io/nicki41/latticore-runtime", "ghcr.io/nicki41/minecontroller-runtime"];
+
+/**
+ * The image to run for a server's stored javaImageTag. The stored tag pins
+ * the Java major; for the official images, the registry/repo part follows
+ * the current RUNTIME_IMAGE_BASE — servers created before the rename move
+ * to the new image name as soon as the config does, and an install still
+ * configured with the old name keeps using it. Any other tag is used as-is.
+ */
+export function runtimeImageFor(javaImageTag: string, base: string = RUNTIME_IMAGE_BASE): string {
+  const official = OFFICIAL_RUNTIME_IMAGE_BASES.find((b) => javaImageTag.startsWith(`${b}:`));
+  return official ? `${base}${javaImageTag.slice(official.length)}` : javaImageTag;
+}
 
 // Covers the full range of Java majors real Minecraft versions currently
 // need: 8 for ~pre-1.17 (LEGACY_JAVA_MAJOR fallback), 17 for ~1.18-1.20.4,

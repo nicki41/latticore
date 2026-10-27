@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { installModrinthVersionSchema } from "@minecraftpanel/shared";
+import { installModrinthVersionSchema } from "@latticore/shared";
 import { ModrinthService } from "./modrinth.service.js";
 import { AuditAction } from "../audit/audit.service.js";
 import { NotFoundError } from "../../lib/errors.js";

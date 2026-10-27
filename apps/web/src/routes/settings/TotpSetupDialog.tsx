@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Check, Copy } from "lucide-react";
-import { enableTotpSchema, type EnableTotpInput } from "@minecraftpanel/shared";
+import { enableTotpSchema, type EnableTotpInput } from "@latticore/shared";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";

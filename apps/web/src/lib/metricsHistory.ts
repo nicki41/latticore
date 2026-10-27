@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { MetricsHistoryDto, MetricsRange } from "@minecraftpanel/shared";
+import type { MetricsHistoryDto, MetricsRange } from "@latticore/shared";
 import { api } from "./api";
 
 export function useMetricsHistory(serverId: string, range: MetricsRange, enabled = true) {

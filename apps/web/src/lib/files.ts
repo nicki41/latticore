@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import type { FileContentDto, FileEntryDto } from "@minecraftpanel/shared";
+import type { FileContentDto, FileEntryDto } from "@latticore/shared";
 import { api, ApiError } from "./api";
 
 export function useFileList(serverId: string, dirPath: string) {

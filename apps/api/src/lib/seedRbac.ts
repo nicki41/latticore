@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { PERMISSIONS, SYSTEM_ROLE_PERMISSIONS, SYSTEM_ROLES } from "@minecraftpanel/shared";
+import { PERMISSIONS, SYSTEM_ROLE_PERMISSIONS, SYSTEM_ROLES } from "@latticore/shared";
 
 /**
  * Idempotent: safe to run on every boot. Ensures every entry in

@@ -1,13 +1,13 @@
 import type { Readable } from "node:stream";
 import Docker from "dockerode";
-import type { ServerRuntime } from "@minecraftpanel/shared";
+import type { ServerRuntime } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { resolveHostDataPath } from "../../config/hostDataPath.js";
 import { logger } from "../../lib/logger.js";
+import { runtimeImageFor } from "./runtimeImages.js";
 
 export const CONTAINER_GAME_PORT = 25565;
 export const CONTAINER_RCON_PORT = 25575;
-const CONTAINER_PREFIX = "mcpanel-";
 
 export interface CreateContainerOptions {
   serverId: string;
@@ -63,10 +63,6 @@ export class DockerMinecraftRuntime {
 
   constructor() {
     this.docker = new Docker({ socketPath: env.DOCKER_SOCKET_PATH });
-  }
-
-  static containerNameFor(serverId: string): string {
-    return `${CONTAINER_PREFIX}${serverId}`;
   }
 
   async ensureNetwork(): Promise<void> {
@@ -125,8 +121,8 @@ export class DockerMinecraftRuntime {
     };
 
     if (options.runtime === "PANEL_MANAGED") {
-      const image = options.javaImageTag;
-      if (!image) throw new Error("javaImageTag is required for a PANEL_MANAGED container.");
+      if (!options.javaImageTag) throw new Error("javaImageTag is required for a PANEL_MANAGED container.");
+      const image = runtimeImageFor(options.javaImageTag);
       await this.ensureImage(image);
 
       const container = await this.docker.createContainer({
@@ -158,7 +154,7 @@ export class DockerMinecraftRuntime {
           SecurityOpt: ["no-new-privileges:true"],
         },
         NetworkingConfig: { EndpointsConfig: { [env.MINECRAFT_NETWORK]: {} } },
-        Labels: { "minecraftpanel.serverId": options.serverId },
+        Labels: { "latticore.serverId": options.serverId },
       });
       return container.id;
     }
@@ -218,7 +214,7 @@ export class DockerMinecraftRuntime {
         SecurityOpt: ["no-new-privileges:true"],
       },
       NetworkingConfig: { EndpointsConfig: { [env.MINECRAFT_NETWORK]: {} } },
-      Labels: { "minecraftpanel.serverId": options.serverId },
+      Labels: { "latticore.serverId": options.serverId },
     });
 
     return container.id;
@@ -347,7 +343,7 @@ export class DockerMinecraftRuntime {
         LogConfig: { Type: "json-file", Config: { "max-size": "10m", "max-file": "1" } },
       },
       NetworkingConfig: { EndpointsConfig: { [env.MINECRAFT_NETWORK]: {} } },
-      Labels: { "minecraftpanel.serverId": options.serverId, "minecraftpanel.role": "installer" },
+      Labels: { "latticore.serverId": options.serverId, "latticore.role": "installer" },
     });
 
     let timer: ReturnType<typeof setTimeout> | undefined;

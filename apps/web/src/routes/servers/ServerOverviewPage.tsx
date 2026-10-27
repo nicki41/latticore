@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { MetricsRange } from "@minecraftpanel/shared";
+import type { MetricsRange } from "@latticore/shared";
 import { MetricChart, type MetricPoint } from "@/components/servers/MetricChart";
 import { MetricsRangeSelector } from "@/components/servers/MetricsRangeSelector";
 import { useMetricsHistory } from "@/lib/metricsHistory";

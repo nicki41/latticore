@@ -1,7 +1,7 @@
 import { hash as argonHash } from "@node-rs/argon2";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import type { CreateUserInput, UpdateUserInput, UserDto } from "@minecraftpanel/shared";
-import { SYSTEM_ROLES } from "@minecraftpanel/shared";
+import type { CreateUserInput, UpdateUserInput, UserDto } from "@latticore/shared";
+import { SYSTEM_ROLES } from "@latticore/shared";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../lib/errors.js";
 
 const ARGON2_OPTIONS = { memoryCost: 19456, timeCost: 2, parallelism: 1 };

@@ -30,6 +30,9 @@ const ALLOWED_DOWNLOAD_HOSTS = new Set([
 const INSTALLER_TIMEOUT_MS = 20 * 60 * 1000;
 const INSTALLER_DOWNLOAD_TIMEOUT_MS = 5 * 60 * 1000;
 
+// Name kept from before the rename to Latticore: it's the contract with the
+// runtime images' entrypoint, and hosts keep using whatever runtime image
+// they pulled first — renaming it would stop servers on those images.
 export const LAUNCH_SCRIPT_FILENAME = ".mcpanel-launch.sh";
 /** Forge/NeoForge's own per-server JVM flags file (comments only by default) — honored if present, see buildLaunchScript(). */
 const USER_JVM_ARGS_FILENAME = "user_jvm_args.txt";

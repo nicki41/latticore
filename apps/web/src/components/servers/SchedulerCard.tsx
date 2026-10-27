@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import cronstrue from "cronstrue";
 import { formatDistanceToNow } from "date-fns";
 import { CalendarClock, History, Pencil, Play, Trash2 } from "lucide-react";
-import type { ServerDto, SchedulerWorkflowDto } from "@minecraftpanel/shared";
+import type { ServerDto, SchedulerWorkflowDto } from "@latticore/shared";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -21,7 +21,7 @@ import {
   ChevronRight,
   Waypoints,
 } from "lucide-react";
-import { isProxySoftware, type Permission, type ServerSoftware } from "@minecraftpanel/shared";
+import { isProxySoftware, type Permission, type ServerSoftware } from "@latticore/shared";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useServers } from "@/lib/servers";

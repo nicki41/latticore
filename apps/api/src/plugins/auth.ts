@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Server } from "@prisma/client";
-import { effectiveServerPermissions, type AccessLevel, type Permission } from "@minecraftpanel/shared";
+import { effectiveServerPermissions, type AccessLevel, type Permission } from "@latticore/shared";
 import { AuthService, type AuthenticatedUser } from "../modules/auth/auth.service.js";
 import { readSessionToken } from "../modules/auth/session.js";
 import { ForbiddenError, NotFoundError, UnauthenticatedError } from "../lib/errors.js";

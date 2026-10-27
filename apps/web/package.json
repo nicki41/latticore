@@ -1,5 +1,5 @@
 {
-  "name": "@minecraftpanel/web",
+  "name": "@latticore/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
-    "@minecraftpanel/shared": "*",
+    "@latticore/shared": "*",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-avatar": "^1.1.1",

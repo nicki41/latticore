@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
-import type { ConfigFieldDef, ServerConfigFileDef, ServerDto } from "@minecraftpanel/shared";
-import { getServerConfigSchema } from "@minecraftpanel/shared";
+import type { ConfigFieldDef, ServerConfigFileDef, ServerDto } from "@latticore/shared";
+import { getServerConfigSchema } from "@latticore/shared";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";

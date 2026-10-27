@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Network, Plus, X } from "lucide-react";
-import type { ServerDto } from "@minecraftpanel/shared";
+import type { ServerDto } from "@latticore/shared";
 import { useServers } from "@/lib/servers";
 import { useCreateAllocation, useDeleteAllocation } from "@/lib/allocations";
 import { useAuth } from "@/lib/auth";

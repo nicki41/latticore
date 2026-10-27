@@ -1,4 +1,4 @@
-import { SERVER_PROPERTIES_FILE, type ServerDto } from "@minecraftpanel/shared";
+import { SERVER_PROPERTIES_FILE, type ServerDto } from "@latticore/shared";
 import { ConfigFileCard } from "./ServerTypeConfigTab";
 
 /**

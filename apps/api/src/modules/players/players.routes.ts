@@ -6,8 +6,8 @@ import {
   ipBanPlayerSchema,
   ipUnbanPlayerSchema,
   gamemodeSchema,
-} from "@minecraftpanel/shared";
-import type { PlayerNameHistoryEntryDto, PlayerIpHistoryEntryDto, PlayerSessionsRange } from "@minecraftpanel/shared";
+} from "@latticore/shared";
+import type { PlayerNameHistoryEntryDto, PlayerIpHistoryEntryDto, PlayerSessionsRange } from "@latticore/shared";
 import { PlayerService } from "./players.service.js";
 import { PlayerBanService } from "./playerBans.service.js";
 import { PlayerDataService } from "./playerData.service.js";

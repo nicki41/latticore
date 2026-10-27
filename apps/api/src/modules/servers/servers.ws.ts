@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { RawData } from "ws";
-import { effectiveServerPermissions, type ServerWsClientMessage } from "@minecraftpanel/shared";
+import { effectiveServerPermissions, type ServerWsClientMessage } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { AuditAction } from "../audit/audit.service.js";
 import { ForbiddenError } from "../../lib/errors.js";

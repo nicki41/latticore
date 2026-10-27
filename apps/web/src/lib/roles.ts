@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CreateRoleInput, RoleDto, UpdateRoleInput } from "@minecraftpanel/shared";
+import type { CreateRoleInput, RoleDto, UpdateRoleInput } from "@latticore/shared";
 import { api } from "./api";
 
 export function useRoles() {

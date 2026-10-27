@@ -6,7 +6,7 @@
 # End users deploying the panel don't need this file at all.
 services:
   api:
-    image: minecontroller-api:dev
+    image: latticore-api:dev
     build:
       context: .
       dockerfile: Dockerfile

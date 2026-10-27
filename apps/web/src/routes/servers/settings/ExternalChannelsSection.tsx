@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, Send, Trash2, Webhook } from "lucide-react";
-import { NOTIFICATION_CATEGORIES, NOTIFICATION_CATEGORY_LABELS, NOTIFICATION_CHANNEL_TYPE_LABELS, type NotificationChannelDto } from "@minecraftpanel/shared";
+import { NOTIFICATION_CATEGORIES, NOTIFICATION_CATEGORY_LABELS, NOTIFICATION_CHANNEL_TYPE_LABELS, type NotificationChannelDto } from "@latticore/shared";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

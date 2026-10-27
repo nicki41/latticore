@@ -151,7 +151,7 @@ model Server {
   /// existing rows stay LEGACY forever (itzg image + RCON), new rows are
   /// always PANEL_MANAGED (panel-owned install + direct console attach).
   runtime String @default("LEGACY")
-  /// The exact runtime image tag (e.g. "mcpanel-runtime:java21") resolved at
+  /// The exact runtime image tag (e.g. "ghcr.io/nicki41/latticore-runtime:java21") resolved at
   /// install time and reused on every recreateContainer() so a Restart never
   /// silently changes a server's JVM. Null for LEGACY, which always uses the
   /// global env.MINECRAFT_IMAGE.

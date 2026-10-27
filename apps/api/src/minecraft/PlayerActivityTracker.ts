@@ -1,7 +1,7 @@
 import type { Readable } from "node:stream";
 import { EventEmitter } from "node:events";
 import type { PrismaClient } from "@prisma/client";
-import { isProxySoftware, PROXY_SOFTWARE, type ServerSoftware, type ServerStatus } from "@minecraftpanel/shared";
+import { isProxySoftware, PROXY_SOFTWARE, type ServerSoftware, type ServerStatus } from "@latticore/shared";
 import { logger } from "../lib/logger.js";
 import { stripAnsi } from "../lib/ansi.js";
 import { expireDueBans } from "../modules/players/playerBans.service.js";

@@ -28,7 +28,7 @@ describe("FileService", () => {
   let root: string;
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-files-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-files-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     root = path.join(tmpDataPath, dataDir);
     await fs.mkdir(root, { recursive: true });
@@ -149,7 +149,7 @@ describe("FileService", () => {
     });
 
     it("skips symlinks instead of following them out of the server directory", async () => {
-      const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-outside-"));
+      const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-outside-"));
       await fs.writeFile(path.join(outsideDir, "secret.txt"), "should not appear in the zip");
 
       await service.create(dataDir, "plugins", "directory");

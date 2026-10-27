@@ -28,7 +28,7 @@ Robust lifecycle (no stuck statuses, boot recovery), Forge/NeoForge, reinstall/v
 
 ## Phase 1 — Rebrand to Latticore, proxy networks (done)
 
-- Name, logo, favicon/PWA icons, splash, manifest and docs are Latticore. Still open: renaming the GitHub repository and the Docker image names — with the old image names kept publishing for a transition period so existing installs keep updating.
+- Name, logo, favicon/PWA icons, splash, manifest, docs, GitHub repository (`nicki41/latticore`) and Docker images are Latticore. The images are still published under their old names too, so installs from before the rename keep updating unchanged.
 - Velocity and BungeeCord as server types, with one-click networks (forwarding, secret, online-mode and port hiding done automatically) and a Networks overview.
 - UniversalAdmin recommended on the Modrinth and Plugins pages.
 

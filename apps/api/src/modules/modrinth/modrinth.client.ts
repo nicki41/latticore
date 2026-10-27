@@ -1,7 +1,7 @@
 import { httpFetchJson } from "../../lib/httpFetch.js";
 import { createTtlCache } from "../../lib/ttlCache.js";
 import { env } from "../../config/env.js";
-import type { ModrinthCollection, ModrinthGameVersion, ModrinthProject, ModrinthSearchResponse, ModrinthVersion } from "@minecraftpanel/shared";
+import type { ModrinthCollection, ModrinthGameVersion, ModrinthProject, ModrinthSearchResponse, ModrinthVersion } from "@latticore/shared";
 
 const GAME_VERSIONS_TTL_MS = 60 * 60 * 1000; // Modrinth's version list changes at most a few times a month
 

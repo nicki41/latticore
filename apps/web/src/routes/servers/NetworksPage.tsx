@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ChevronRight, PlusCircle, Radio, Waypoints } from "lucide-react";
-import { isProxySoftware, type ServerDto } from "@minecraftpanel/shared";
+import { isProxySoftware, type ServerDto } from "@latticore/shared";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

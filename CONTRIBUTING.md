@@ -15,8 +15,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 Working on the panel-managed Java runtime images (`runtime-images/`)? These are normally published by CI (`.github/workflows/docker-publish.yml`) and pulled automatically — to test a change locally instead, build and tag one to match what the API expects, then point `RUNTIME_IMAGE_BASE` at your local tag:
 
 ```bash
-docker build -f runtime-images/java21/Dockerfile -t mcpanel-runtime-local:java21 runtime-images/
-# then in .env: RUNTIME_IMAGE_BASE=mcpanel-runtime-local
+docker build -f runtime-images/java21/Dockerfile -t latticore-runtime-local:java21 runtime-images/
+# then in .env: RUNTIME_IMAGE_BASE=latticore-runtime-local
 ```
 
 ## Before opening a PR

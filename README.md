@@ -5,15 +5,15 @@
 <h1 align="center">Latticore</h1>
 
 <p align="center">
-  <a href="https://github.com/nicki41/minecontroller/actions/workflows/ci.yml"><img src="https://github.com/nicki41/minecontroller/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/nicki41/minecontroller/actions/workflows/docker-publish.yml"><img src="https://github.com/nicki41/minecontroller/actions/workflows/docker-publish.yml/badge.svg" alt="Publish Docker images"></a>
-  <a href="https://www.codefactor.io/repository/github/nicki41/minecontroller/overview/master"><img src="https://www.codefactor.io/repository/github/nicki41/minecontroller/badge/master" alt="CodeFactor" /> </a>                                                                                                                                                                                                                           
+  <a href="https://github.com/nicki41/latticore/actions/workflows/ci.yml"><img src="https://github.com/nicki41/latticore/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/nicki41/latticore/actions/workflows/docker-publish.yml"><img src="https://github.com/nicki41/latticore/actions/workflows/docker-publish.yml/badge.svg" alt="Publish Docker images"></a>
+  <a href="https://www.codefactor.io/repository/github/nicki41/latticore/overview/master"><img src="https://www.codefactor.io/repository/github/nicki41/latticore/badge/master" alt="CodeFactor"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License: GPL-3.0"></a>
 </p>
 
 A self-hosted panel for Minecraft servers and the proxy networks that tie them together. Each server runs in its own Docker container — installed and launched by the panel itself, on minimal Java-only runtime images it publishes ([`runtime-images/`](runtime-images/)), not a third-party all-in-one image — managed through a Fastify/TypeScript API with an embedded SQLite database and a React UI. One container, no separate database service, no build step — every image is pulled pre-built from GitHub Container Registry, so `docker compose up -d` really is all it takes.
 
-> **Latticore was called *minecontroller* until October 2026.** The GitHub repository and the published Docker image names still use the old name for now, so existing installs keep updating — nothing to change on your side.
+> **Latticore was called *minecontroller* until October 2026.** Already running it? Nothing to change — `docker compose pull && docker compose up -d` keeps working, since the images are still published under their old names too. Switching to the new names is optional, see [Coming from minecontroller](docs/operations.md#coming-from-minecontroller).
 
 **Features:**
 
@@ -99,8 +99,8 @@ Two files, downloaded directly — no repository checkout needed:
 
 ```bash
 mkdir latticore && cd latticore
-curl -fsSLO https://raw.githubusercontent.com/nicki41/minecontroller/master/docker-compose.yml
-curl -fsSLo .env https://raw.githubusercontent.com/nicki41/minecontroller/master/.env.example
+curl -fsSLO https://raw.githubusercontent.com/nicki41/latticore/master/docker-compose.yml
+curl -fsSLo .env https://raw.githubusercontent.com/nicki41/latticore/master/.env.example
 ```
 
 Then edit `.env` — **`SESSION_SECRET`** is the only thing you must change (generate one with `openssl rand -hex 32`); set **`TZ`** (e.g. `Europe/Berlin`) so scheduled workflows run on your local clock. Everything else has a sensible default; the database needs no configuration at all, and the host path for server data is auto-detected on boot (no absolute path to figure out). See **[docs/configuration.md](docs/configuration.md)** for the full variable reference.

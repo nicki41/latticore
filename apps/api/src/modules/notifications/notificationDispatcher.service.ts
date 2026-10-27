@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import type { NotificationCategory, NotificationChannelType } from "@minecraftpanel/shared";
+import type { NotificationCategory, NotificationChannelType } from "@latticore/shared";
 import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
 import { decryptChannelConfig } from "../../lib/webhookCrypto.js";

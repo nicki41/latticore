@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, Copy } from "lucide-react";
-import type { PlayerDto } from "@minecraftpanel/shared";
+import type { PlayerDto } from "@latticore/shared";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";

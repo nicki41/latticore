@@ -23,7 +23,7 @@ describe("ServerConfigService", () => {
   const server = { software: "PAPER" as const, dataDir: "servers/paper-1" };
 
   beforeEach(async () => {
-    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "mcpanel-serverconfig-"));
+    tmpDataPath = await fs.mkdtemp(path.join(os.tmpdir(), "latticore-serverconfig-"));
     globalThis.__TEST_DATA_PATH__ = tmpDataPath;
     service = new ServerConfigService();
     await fs.mkdir(path.join(tmpDataPath, server.dataDir), { recursive: true });
