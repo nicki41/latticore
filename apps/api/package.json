@@ -21,13 +21,13 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@fastify/cookie": "^11.0.2",
+    "@fastify/cookie": "^11.1.5",
     "@fastify/cors": "^10.0.1",
     "@fastify/csrf-protection": "^7.0.1",
     "@fastify/helmet": "^13.2.0",
     "@fastify/multipart": "^9.0.1",
     "@fastify/rate-limit": "^10.1.1",
-    "@fastify/static": "^10.1.3",
+    "@fastify/static": "^10.1.8",
     "@fastify/websocket": "^11.0.1",
     "@minecraftpanel/shared": "*",
     "@node-rs/argon2": "^2.0.2",
